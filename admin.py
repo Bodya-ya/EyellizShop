@@ -34,9 +34,6 @@ class AdminStates(StatesGroup):
 
 @router.message(Command("admin"))
 async def admin_panel(message: Message, state: FSMContext):
-    print(f"DEBUG: user_id={message.from_user.id}")
-    print(f"DEBUG: ADMIN_IDS={config.ADMIN_IDSS}")
-    print(f"DEBUG: check={message.from_user.id not in config.ADMIN_IDSS}")
     # Сбрасываем состояние
     await state.clear()
     if message.from_user.id not in config.ADMIN_IDSS:
@@ -736,7 +733,7 @@ async def back_to_menu(message: Message):
 
 @router.callback_query(F.data.startswith("approve_buy:"))
 async def approve_buy_deal(callback: CallbackQuery):
-    if callback.from_user.id not in config.ADMIN_IDSS:  # ← Замени config.ADMIN_IDS
+    if callback.from_user.id not in config.ADMIN_IDS:  # ← Замени config.ADMIN_IDS
         await callback.answer("⛔️ Недостаточно прав", show_alert=True)
         return
 
