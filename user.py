@@ -952,9 +952,12 @@ async def cancel_deal(callback: CallbackQuery):
 async def top_buyers(message: Message):
     async with async_session() as session:
         result = await session.execute(
-            select(User).order_by(User.total_bought_coins.desc()).limit(10)
+            select(User).where(User.total_bought_coins > 0).order_by(User.total_bought_coins.desc()).limit(8)
         )
         users = result.scalars().all()
+
+        if not users:
+            return  # Просто ничего не показываем
 
         text = "🏆 Топ покупателей\n\n"
         for i, user in enumerate(users, 1):
@@ -967,7 +970,7 @@ async def top_buyers(message: Message):
         if prize:
             text += f"\n🎁 Приз: {prize}\n"
 
-        await message.answer(text)  # ← Без parse_mode и без HTML
+        await message.answer(text)
 
 @router.message(F.text == "👤 Мой профиль")
 async def my_profile(message: Message):
