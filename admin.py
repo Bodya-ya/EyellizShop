@@ -776,6 +776,16 @@ async def approve_buy_deal(callback: CallbackQuery):
                     f"BC начислены пользователю.\n"
                     f"Резерв уменьшен на {deal.rub_amount}₽"
                 )
+                # Уведомляем других админов
+                for admin_id in config.ADMIN_IDS:
+                    if admin_id != callback.from_user.id:
+                        try:
+                            await bot.send_message(
+                                admin_id,
+                                f"✅ Сделка {deal.deal_number} уже подтверждена."
+                            )
+                        except:
+                            pass
 
                 await bot.send_message(
                     deal.user_id,

@@ -18,7 +18,7 @@ class BytecoinAPI:
 
     async def get_service_info(self) -> dict:
         """Получает информацию о сервисе"""
-        async with httpx.AsyncClient(verify=False, trust_env=False) as client:
+        async with httpx.AsyncClient(verify=False, trust_env=False, timeout=30.0) as client:
             response = await client.get(
                 f"{self.base_url}/service/info",
                 headers=self.headers

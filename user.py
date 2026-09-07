@@ -116,8 +116,12 @@ async def get_cached_balance():
         if now - cached_balance["updated_at"] < timedelta(seconds=30):
             return cached_balance["value"]
 
-    # Иначе запрашиваем у API
-    balance = await bytecoin_api.get_balance()
+    try:
+        balance = await bytecoin_api.get_balance()
+    except Exception as e:
+        logger.error(f"API timeout: {e}")
+        balance = Decimal("0")
+
     cached_balance["value"] = balance
     cached_balance["updated_at"] = now
 
@@ -669,6 +673,15 @@ async def sell_bytecoin(message: Message, state: FSMContext):
     user_balance = Decimal("0")
     if user_info and user_info.get("items"):
         user_balance = Decimal(user_info["items"][0].get("balance", "0"))
+
+    if available_rub <= 0:
+        await message.answer(
+            "❌ <b>Недостаточно резерва</b>\n\n"
+            "Мы временно не выкупаем BC.\n"
+            "⏳ Попробуйте позже.",
+            parse_mode="HTML"
+        )
+        return
 
     await state.update_data(
         available_coins=available_coins,
