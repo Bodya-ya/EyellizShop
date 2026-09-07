@@ -548,7 +548,7 @@ async def broadcast_send(message: Message, state: FSMContext):
 
 @router.message(F.text == "📋 Активные сделки")
 async def admin_active_deals(message: Message):
-    
+
     """Показывает сделки на проверке"""
     if message.from_user.id != config.ADMIN_ID:
         return
@@ -746,7 +746,7 @@ async def approve_buy_deal(callback: CallbackQuery):
             result = await bytecoin_api.transfer_to_user(
                 user_id=int(deal.user_id),
                 sum_coins=Decimal(deal.coins_amount),
-                idempotency_key=f"approve-buy-{deal.id}"
+                idempotency_key=f"approve-buy-{deal.id}-{datetime.utcnow().timestamp()}"
             )
 
             if result.get("status") == "ok":

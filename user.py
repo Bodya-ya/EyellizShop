@@ -785,7 +785,7 @@ async def use_saved_payment(callback: CallbackQuery, state: FSMContext):
             await callback.message.answer(
                 f"✅ Выбрано: {payment_info}\n\n"
                 f"Переведите BC любым для вас удобным методом:\n\n"
-                f"🔢 Указать количество — если хотите продать конкретную сумму BC.\n\n"
+                f"🔢 Указать количество — если хотите узнать сумму выплаты в рублях.\n\n"
                 f"🔗 По ссылке — переведите любую сумму, мы автоматически посчитаем выплату.\n\n"
                 f"После перевода нажмите '✅ Я перевёл'",
                 reply_markup=InlineKeyboardMarkup(
