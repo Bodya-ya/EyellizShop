@@ -368,7 +368,6 @@ async def show_rates_and_limits(message: Message):
         f"📈 <b>Купить BC:</b> <code>{format_rate(config.RATE_SELL)}₽ / 1000 BC</code>\n"
         f"📉 <b>Продать BC:</b> <code>{format_rate(config.RATE_BUY)}₽ / 1000 BC</code>\n\n"
         f"⭐ <b>Звёзды при покупке:</b> <code>1 звезда = {config.STAR_PRICE_BUY}₽</code>\n"
-        f"⭐ <b>Звёзды при продаже:</b> <code>1 звезда = {config.STAR_PRICE_SELL}₽</code>\n"
         f"<i>Минимум: {config.STAR_MIN_AMOUNT} звёзд</i>\n\n"
         f"📦 <b>Продадим:</b> <code>{format_num(available_to_sell_coins)} BC</code>\n"
         f"💸 <b>Выкупим:</b> <code>{format_num(available_to_buy_coins)} BC</code>\n"
