@@ -36,7 +36,7 @@ class AdminStates(StatesGroup):
 async def admin_panel(message: Message, state: FSMContext):
     # Сбрасываем состояние
     await state.clear()
-    if message.from_user.id not in config.ADMIN_IDSS:
+    if message.from_user.id not in config.ADMIN_IDS:
         await message.answer("⛔️ Недостаточно прав")
         return
 
@@ -49,7 +49,7 @@ async def admin_panel(message: Message, state: FSMContext):
 
 @router.message(F.text == "📊 Статистика")
 async def admin_stats(message: Message):
-    if message.from_user.id not in config.ADMIN_IDSS:
+    if message.from_user.id not in config.ADMIN_IDS:
         return
 
     async with async_session() as session:
@@ -74,7 +74,7 @@ async def admin_stats(message: Message):
 
 @router.message(F.text == "💰 Баланс")
 async def admin_balance(message: Message):
-    if message.from_user.id not in config.ADMIN_IDSS:
+    if message.from_user.id not in config.ADMIN_IDS:
         return
 
     # Получаем балансы
@@ -99,7 +99,7 @@ async def admin_balance(message: Message):
 
 @router.message(F.text == "📜 История сделок")
 async def admin_history(message: Message):
-    if message.from_user.id not in config.ADMIN_IDSS:
+    if message.from_user.id not in config.ADMIN_IDS:
         return
 
     async with async_session() as session:
@@ -140,7 +140,7 @@ async def admin_history(message: Message):
 
 @router.message(Command("set_rub_balance"))
 async def set_rub_balance_start(message: Message, state: FSMContext):
-    if message.from_user.id not in config.ADMIN_IDSS:
+    if message.from_user.id not in config.ADMIN_IDS:
         return
 
     await message.answer(
@@ -167,7 +167,7 @@ async def set_rub_balance_finish(message: Message, state: FSMContext):
 
 @router.message(Command("set_max_buy"))
 async def set_max_buy_start(message: Message, state: FSMContext):
-    if message.from_user.id not in config.ADMIN_IDSS:
+    if message.from_user.id not in config.ADMIN_IDS:
         return
 
     await message.answer(
@@ -194,7 +194,7 @@ async def set_max_buy_finish(message: Message, state: FSMContext):
 
 @router.message(Command("set_max_sell"))
 async def set_max_sell_start(message: Message, state: FSMContext):
-    if message.from_user.id not in config.ADMIN_IDSS:
+    if message.from_user.id not in config.ADMIN_IDS:
         return
 
     await message.answer(
@@ -220,7 +220,7 @@ async def set_max_sell_finish(message: Message, state: FSMContext):
 
 @router.message(F.text == "📈 Курс")
 async def admin_rate(message: Message):
-    if message.from_user.id not in config.ADMIN_IDSS:
+    if message.from_user.id not in config.ADMIN_IDS:
         return
 
     await message.answer(
@@ -234,7 +234,7 @@ async def admin_rate(message: Message):
 
 @router.message(Command("withdraw_bc"))
 async def withdraw_bc_start(message: Message, state: FSMContext):
-    if message.from_user.id not in config.ADMIN_IDSS:
+    if message.from_user.id not in config.ADMIN_IDS:
         return
 
     await message.answer(
@@ -246,7 +246,7 @@ async def withdraw_bc_start(message: Message, state: FSMContext):
 
 @router.message(AdminStates.waiting_withdraw)
 async def withdraw_bc_finish(message: Message, state: FSMContext):
-    if message.from_user.id not in config.ADMIN_IDSS:
+    if message.from_user.id not in config.ADMIN_IDS:
         return
 
     try:
@@ -278,7 +278,7 @@ async def withdraw_bc_finish(message: Message, state: FSMContext):
 
 @router.message(Command("set_rate"))
 async def set_rate_start(message: Message, state: FSMContext):
-    if message.from_user.id not in config.ADMIN_IDSS:
+    if message.from_user.id not in config.ADMIN_IDS:
         return
 
     await message.answer(
@@ -329,7 +329,7 @@ async def set_rate_sell_finish(message: Message, state: FSMContext):
 
 @router.message(F.text == "👥 Пользователи")
 async def admin_users(message: Message):
-    if message.from_user.id not in config.ADMIN_IDSS:
+    if message.from_user.id not in config.ADMIN_IDS:
         return
 
     async with async_session() as session:
@@ -355,7 +355,7 @@ async def admin_users(message: Message):
 
 @router.message(F.text == "📋 Сделки")
 async def admin_deals(message: Message):
-    if message.from_user.id not in config.ADMIN_IDSS:
+    if message.from_user.id not in config.ADMIN_IDS:
         return
 
     async with async_session() as session:
@@ -451,7 +451,7 @@ async def approve_deal(callback: CallbackQuery):
 
 @router.message(Command("set_limits"))
 async def set_limits_start(message: Message, state: FSMContext):
-    if message.from_user.id not in config.ADMIN_IDSS:
+    if message.from_user.id not in config.ADMIN_IDS:
         return
 
     await message.answer(
@@ -505,7 +505,7 @@ async def set_max_limit(message: Message, state: FSMContext):
 
 @router.message(Command("broadcast"))
 async def broadcast_start(message: Message, state: FSMContext):
-    if message.from_user.id not in config.ADMIN_IDSS:
+    if message.from_user.id not in config.ADMIN_IDS:
         return
 
     await message.answer(
@@ -517,7 +517,7 @@ async def broadcast_start(message: Message, state: FSMContext):
 
 @router.message(AdminStates.waiting_broadcast)
 async def broadcast_send(message: Message, state: FSMContext):
-    if message.from_user.id not in config.ADMIN_IDSS:
+    if message.from_user.id not in config.ADMIN_IDS:
         return
 
     text = message.text
@@ -550,7 +550,7 @@ async def broadcast_send(message: Message, state: FSMContext):
 async def admin_active_deals(message: Message):
 
     """Показывает сделки на проверке"""
-    if message.from_user.id not in config.ADMIN_IDSS:
+    if message.from_user.id not in config.ADMIN_IDS:
         return
 
     async with async_session() as session:
@@ -601,7 +601,7 @@ async def admin_active_deals(message: Message):
 @router.callback_query(F.data.startswith("approve_sell:"))
 async def approve_sell_deal(callback: CallbackQuery):
     """Админ подтверждает выплату за продажу BC"""
-    if callback.from_user.id != config.ADMIN_IDSS:
+    if callback.from_user.id != config.ADMIN_IDS:
         await callback.answer("⛔️ Недостаточно прав", show_alert=True)
         return
 
@@ -706,7 +706,7 @@ async def reject_deal(callback: CallbackQuery):
 
 @router.message(F.text == "🔧 Настройки")
 async def admin_settings(message: Message):
-    if message.from_user.id not in config.ADMIN_IDSS:
+    if message.from_user.id not in config.ADMIN_IDS:
         return
 
     await message.answer(
@@ -798,7 +798,7 @@ async def approve_buy_deal(callback: CallbackQuery):
 
 @router.message(Command("set_top_prize"))
 async def set_top_prize_start(message: Message, state: FSMContext):
-    if message.from_user.id not in config.ADMIN_IDSS:
+    if message.from_user.id not in config.ADMIN_IDS:
         return
     await message.answer("🎁 Введите текст приза для топа:")
     await state.set_state(AdminStates.waiting_top_prize)
