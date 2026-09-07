@@ -15,6 +15,9 @@ from database import async_session, User, Deal, format_decimal, get_setting, set
 from config import config
 from user_kb import main_menu_kb, payment_method_sell_kb, confirm_kb, saved_payments_kb, payment_method_buy_kb
 
+import logging
+logger = logging.getLogger(__name__)
+
 router = Router()
 
 MAIN_MENU_BUTTONS = [
@@ -1186,17 +1189,22 @@ async def confirm_buy_payment(callback: CallbackQuery, state: FSMContext):
         username = f"@{user.username}" if user and user.username else "Нет тега"
         first_name = user.first_name if user and user.first_name else "Пользователь"
 
-        await bot.send_message(
-            config.ADMIN_ID,
-            f"🔔 Новая покупка BC!\n\n"
-            f"📋 Сделка: {deal.deal_number}\n"
-            f"👤 Пользователь: {first_name} {username}\n"
-            f"💰 Сумма: {format_decimal(deal.rub_amount)}₽\n"
-            f"💎 BC: {format_decimal(deal.coins_amount)}\n"
-            f"📝 Метод: {deal.payment_method}\n\n"
-            f"Проверьте оплату и подтвердите:",
-            reply_markup=admin_kb
-        )
+        # Уведомляем админа
+        for admin_id in config.ADMIN_IDS:
+            try:
+                await bot.send_message(
+                    admin_id,
+                    f"🔔 Новая покупка BC!\n\n"
+                    f"📋 Сделка: {deal.deal_number}\n"
+                    f"👤 Пользователь: {first_name} {username}\n"
+                    f"💰 Сумма: {format_decimal(deal.rub_amount)}₽\n"
+                    f"💎 BC: {format_decimal(deal.coins_amount)}\n"
+                    f"📝 Метод: {deal.payment_method}\n\n"
+                    f"Проверьте оплату и подтвердите:",
+                    reply_markup=admin_kb
+                )
+            except Exception as e:
+                logger.error(f"Failed to send to admin {admin_id}: {e}")
 
     await callback.message.answer(
         "✅ Заявка отправлена на проверку!\n\n"
