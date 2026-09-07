@@ -382,7 +382,7 @@ async def admin_deals(message: Message):
 @router.callback_query(F.data.startswith("approve_deal:"))
 async def approve_deal(callback: CallbackQuery):
     """Админ подтверждает сделку"""
-    if callback.from_user.id != config.ADMIN_IDS:
+    if callback.from_user.id not in config.ADMIN_IDS:
         await callback.answer("⛔️ Недостаточно прав", show_alert=True)
         return
 
@@ -601,7 +601,7 @@ async def admin_active_deals(message: Message):
 @router.callback_query(F.data.startswith("approve_sell:"))
 async def approve_sell_deal(callback: CallbackQuery):
     """Админ подтверждает выплату за продажу BC"""
-    if callback.from_user.id != config.ADMIN_IDS:
+    if callback.from_user.id not in config.ADMIN_IDS:
         await callback.answer("⛔️ Недостаточно прав", show_alert=True)
         return
 
@@ -636,7 +636,7 @@ async def approve_sell_deal(callback: CallbackQuery):
 @router.callback_query(F.data.startswith("reject_sell:"))
 async def reject_sell_deal(callback: CallbackQuery):
     """Админ отклоняет продажу"""
-    if callback.from_user.id != config.ADMIN_IDS:
+    if callback.from_user.id not in config.ADMIN_IDS:
         await callback.answer("⛔️ Недостаточно прав", show_alert=True)
         return
 
@@ -668,7 +668,7 @@ async def reject_sell_deal(callback: CallbackQuery):
 @router.callback_query(F.data.startswith("reject_deal:"))
 async def reject_deal(callback: CallbackQuery):
     """Админ отклоняет сделку"""
-    if callback.from_user.id != config.ADMIN_IDS:
+    if callback.from_user.id not in config.ADMIN_IDS:
         await callback.answer("⛔️ Недостаточно прав", show_alert=True)
         return
 
@@ -812,7 +812,7 @@ async def set_top_prize_finish(message: Message, state: FSMContext):
 @router.callback_query(F.data.startswith("reject_buy:"))
 async def reject_buy_deal(callback: CallbackQuery):
     """Админ отклоняет покупку"""
-    if callback.from_user.id != config.ADMIN_IDS:
+    if callback.from_user.id not in config.ADMIN_IDS:
         await callback.answer("⛔️ Недостаточно прав", show_alert=True)
         return
 
