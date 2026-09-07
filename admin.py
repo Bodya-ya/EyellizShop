@@ -34,6 +34,9 @@ class AdminStates(StatesGroup):
 
 @router.message(Command("admin"))
 async def admin_panel(message: Message, state: FSMContext):
+    print(f"DEBUG: user_id={message.from_user.id}")
+    print(f"DEBUG: ADMIN_IDS={config.ADMIN_IDS}")
+    print(f"DEBUG: check={message.from_user.id not in config.ADMIN_IDS}")
     # Сбрасываем состояние
     await state.clear()
     if message.from_user.id not in config.ADMIN_IDS:
