@@ -656,7 +656,7 @@ async def reject_sell_deal(callback: CallbackQuery):
             deal.user_id,
             f"❌ Выплата отклонена\n\n"
             f"📋 Сделка: {deal.deal_number}\n"
-            f"Обратитесь в поддержку: @eyelliz"
+            f"Обратитесь в поддержку: @EyellizSUP"
         )
 
         await callback.answer("Отклонено")
@@ -695,7 +695,7 @@ async def reject_deal(callback: CallbackQuery):
             f"ID сделки: <code>{deal.deal_number}</code>\n"
             f"Сумма: {deal.rub_amount}₽\n\n"
             "Если вы оплатили, обратитесь в поддержку.\n\n"
-            "Support : @eyelliz"
+            "Support : @EyellizSUP"
         )
 
         await callback.answer("Сделка отклонена", show_alert=True)
@@ -833,7 +833,7 @@ async def reject_buy_deal(callback: CallbackQuery):
             f"❌ Оплата не подтверждена\n\n"
             f"📋 Сделка: {deal.deal_number}\n"
             f"Обратитесь в поддержку.\n\n"
-            "Support : @eyelliz"
+            "Support : @EyellizSUP"
         )
 
         await callback.answer("Сделка отклонена")

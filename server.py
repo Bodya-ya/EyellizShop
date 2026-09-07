@@ -203,7 +203,7 @@ async def bytecoin_webhook(request: Request):
                     user_id,
                     f"✅ Вы пополнили резерв бота на {sum_coins:.0f} BC!\n\n"
                     f"Если это было ошибочно, обратитесь в поддержку бота⬇️\n\n"
-                    f"Support: @eyelliz"
+                    f"Support: @EyellizSUP"
                 )
 
         return {"status": "ok"}

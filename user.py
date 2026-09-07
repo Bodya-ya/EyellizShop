@@ -1041,7 +1041,7 @@ async def about_cmd(message: Message):
         "2. 💎 Введите количество\n"
         "3. Переведите Bytecoin\n"
         "4.💰 Получите деньги\n\n"
-        "По вопросам: @eyelliz"
+        "По вопросам: @EyellizSUP"
     )
 
 
