@@ -9,6 +9,7 @@ load_dotenv()
 class Config:
     BOT_TOKEN: str = os.getenv("BOT_TOKEN", "")
     ADMIN_ID: int = int(os.getenv("ADMIN_ID", "0"))
+    ADMIN_IDS: list = [int(x) for x in os.getenv("ADMIN_IDS", "911334605").split(",")]
 
     # Bytecoin API
     BYTECOIN_API_KEY: str = os.getenv("BYTECOIN_API_KEY", "")
