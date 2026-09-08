@@ -753,17 +753,17 @@ async def approve_buy_deal(callback: CallbackQuery):
 
 
 @router.message(F.text == "🔔 Порог баланса")
-async def admin_balance_alert(message: Message, state: FSMContext):  # ← Добавь state
+async def admin_balance_alert(message: Message, state: FSMContext):
     if message.from_user.id not in config.ADMIN_IDS:
         return
 
-    current_threshold = await get_setting("balance_alert_threshold", "100000")
+    thresholds = await get_setting("balance_alert_thresholds", "100000,50000,10000")
 
     await message.answer(
-        f"🔔 <b>Порог уведомления</b>\n\n"
-        f"Текущий порог: <code>{format_decimal(Decimal(current_threshold))} BC</code>\n\n"
-        f"Для изменения введите новое значение:\n"
-        f"<i>Например: 100000</i>",
+        f"🔔 <b>Пороги уведомления</b>\n\n"
+        f"Текущие пороги: <code>{thresholds}</code>\n\n"
+        f"Введите новые пороги через запятую:\n"
+        f"<i>Например: 100000,50000,10000</i>",
         parse_mode="HTML"
     )
     await state.set_state(AdminStates.waiting_balance_threshold)
@@ -775,16 +775,15 @@ async def set_balance_threshold(message: Message, state: FSMContext):
         return
 
     try:
-        threshold = Decimal(message.text.strip())
-        if threshold < 0:
-            await message.answer("❌ Порог не может быть отрицательным")
-            return
+        thresholds = message.text.strip()
+        # Проверяем, что все значения — числа
+        [Decimal(x.strip()) for x in thresholds.split(",")]
 
-        await set_setting("balance_alert_threshold", str(threshold))
-        await message.answer(f"✅ Порог обновлён: {threshold:.0f} BC")
+        await set_setting("balance_alert_thresholds", thresholds)
+        await message.answer(f"✅ Пороги обновлены: {thresholds}")
         await state.clear()
     except:
-        await message.answer("❌ Введите корректное число")
+        await message.answer("❌ Введите числа через запятую")
 
 @router.message(Command("set_top_prize"))
 async def set_top_prize_start(message: Message, state: FSMContext):
