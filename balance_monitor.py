@@ -60,4 +60,4 @@ async def balance_monitor_loop():
 
     while True:
         await check_balance()
-        await asyncio.sleep(60)  # Проверяем раз в минуту
+        await asyncio.sleep(10)
