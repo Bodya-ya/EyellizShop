@@ -6,6 +6,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from __init__ import register_all_handlers
 from database import init_db
 from config import config
+from balance_monitor import balance_monitor_loop  # ← Импорт
 
 logging.basicConfig(
     level=logging.INFO,
@@ -25,6 +26,8 @@ async def main():
 
     # Регистрируем обработчики
     register_all_handlers(dp)
+
+    asyncio.create_task(balance_monitor_loop())
 
     # Запускаем polling
     logger.info("Bot started")

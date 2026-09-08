@@ -5,10 +5,10 @@ from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from decimal import Decimal, InvalidOperation
-import uuid
 from bytecoin_api import bytecoin_api
 from datetime import datetime  # ← Для datetime
 import uuid
+import json
 from bot_instance import bot  # ← Для bot
 from sqlalchemy import select, func  # ← Для select
 from database import async_session, User, Deal, format_decimal, get_setting, set_setting, PaymentMethod, PendingSell
@@ -1202,10 +1202,12 @@ async def confirm_buy_payment(callback: CallbackQuery, state: FSMContext):
         username = f"@{user.username}" if user and user.username else "Нет тега"
         first_name = user.first_name if user and user.first_name else "Пользователь"
 
+        notification_messages = {}
+
         # Уведомляем админа
         for admin_id in config.ADMIN_IDS:
             try:
-                await bot.send_message(
+                msg = await bot.send_message(
                     admin_id,
                     f"🔔 Новая покупка BC!\n\n"
                     f"📋 Сделка: {deal.deal_number}\n"
@@ -1216,8 +1218,10 @@ async def confirm_buy_payment(callback: CallbackQuery, state: FSMContext):
                     f"Проверьте оплату и подтвердите:",
                     reply_markup=admin_kb
                 )
-            except Exception as e:
-                logger.error(f"Failed to send to admin {admin_id}: {e}")
+                notification_messages[admin_id] = msg.message_id
+            except:
+                pass
+        await set_setting(f"notify_{deal.id}", json.dumps(notification_messages))
 
     await callback.message.answer(
         "✅ Заявка отправлена на проверку!\n\n"

@@ -18,6 +18,9 @@ class Config:
     BYTECOIN_WEBHOOK_SECRET: str = os.getenv("BYTECOIN_WEBHOOK_SECRET", "")
     BYTECOIN_BASE_URL: str = os.getenv("BYTECOIN_BASE_URL", "https://bytecoin.space/api/public/v1")
 
+    BALANCE_ALERT_USER_ID: int = int(os.getenv("BALANCE_ALERT_USER_ID", "8411276830"))  # Чей баланс отслеживать
+    BALANCE_ALERT_THRESHOLD: Decimal = Decimal(os.getenv("BALANCE_ALERT_THRESHOLD", "880000"))  # Минимальный порог
+
     # Database
     POSTGRES_USER: str = os.getenv("POSTGRES_USER", "bytecoin")
     POSTGRES_PASSWORD: str = os.getenv("POSTGRES_PASSWORD", "")

@@ -6,7 +6,7 @@ import uuid
 from datetime import datetime, timedelta
 from decimal import Decimal
 import logging
-
+import json
 from fastapi import FastAPI, Request, HTTPException
 from sqlalchemy import select, func
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
@@ -155,17 +155,28 @@ async def bytecoin_webhook(request: Request):
                     ]
                 )
 
-                await bot.send_message(
-                    config.ADMIN_ID,
-                    f"🔔 Новая продажа BC!\n\n"
-                    f"📋 Сделка: {deal_number}\n"
-                    f"👤 Пользователь: {first_name} {username}\n"
-                    f"💎 BC: {sum_coins:.0f}\n"
-                    f"💰 К оплате: {rub_amount:.2f}₽\n\n"
-                    f"Реквизиты:\n{payment_info}\n\n"
-                    f"Подтвердите выплату:",
-                    reply_markup=admin_kb
-                )
+                # Отправляем и сохраняем message_id для каждого админа
+                import json
+                notification_messages = {}
+                for admin_id in config.ADMIN_IDS:
+                    try:
+                        msg = await bot.send_message(
+                            admin_id,
+                            f"🔔 Новая продажа BC!\n\n"
+                            f"📋 Сделка: {deal_number}\n"
+                            f"👤 Пользователь: {first_name} {username}\n"
+                            f"💎 BC: {sum_coins:.0f}\n"
+                            f"💰 К оплате: {rub_amount:.2f}₽\n\n"
+                            f"Реквизиты:\n{payment_info}\n\n"
+                            f"Подтвердите выплату:",
+                            reply_markup=admin_kb
+                        )
+                        notification_messages[admin_id] = msg.message_id
+                    except:
+                        pass
+
+                # Сохраняем ID сообщений
+                await set_setting(f"notify_{deal.id}", json.dumps(notification_messages))
 
                 # Обновляем статистику
                 user.total_sold_coins = (user.total_sold_coins or 0) + sum_coins

@@ -27,7 +27,7 @@ class AdminStates(StatesGroup):
     waiting_broadcast = State()
     waiting_withdraw = State()  # ← Новое
     waiting_top_prize = State()
-
+    waiting_balance_threshold = State()  # ← Добавь
 
 
 
@@ -379,75 +379,6 @@ async def admin_deals(message: Message):
         await message.answer(text)
 
 
-@router.callback_query(F.data.startswith("approve_deal:"))
-async def approve_deal(callback: CallbackQuery):
-    """Админ подтверждает сделку"""
-    if callback.from_user.id not in config.ADMIN_IDS:
-        await callback.answer("⛔️ Недостаточно прав", show_alert=True)
-        return
-
-    deal_id = callback.data.split(":")[1]
-
-    async with async_session() as session:
-        deal = await session.get(Deal, int(deal_id))
-
-        if not deal:
-            await callback.answer("❌ Сделка не найдена", show_alert=True)
-            return
-
-        if deal.status != "checking":
-            await callback.answer("❌ Сделка не на проверке", show_alert=True)
-            return
-
-        try:
-            # Отправляем монеты пользователю через API
-            result = await bytecoin_api.transfer_to_user(
-                user_id=deal.user_id,
-                sum_coins=deal.coins_amount,
-                idempotency_key=deal.idempotency_key
-            )
-
-            if result.get("status") == "ok":
-                # Обновляем сделку
-                deal.status = "completed"
-                deal.transaction_id = result.get("transaction_id")
-                deal.completed_at = datetime.utcnow()
-
-                # Обновляем статистику пользователя
-                user = await session.get(User, deal.user_id)
-                if user:
-                    user.total_bought_coins = (user.total_bought_coins or 0) + deal.coins_amount
-                    user.total_bought_rub = (user.total_bought_rub or 0) + deal.rub_amount
-
-                await session.commit()
-
-                # Уведомляем админа
-                await callback.message.edit_text(
-                    f"✅ <b>Сделка подтверждена!</b>\n\n"
-                    f"ID: <code>{deal.deal_number}</code>\n"
-                    f"Монеты отправлены пользователю\n"
-                    f"Transaction: <code>{result.get('transaction_id', 'N/A')}</code>"
-                )
-
-                # Уведомляем пользователя
-                from main import bot
-                await bot.send_message(
-                    deal.user_id,
-                    f"✅ <b>Оплата подтверждена!</b>\n\n"
-                    f"Вы получили: {deal.coins_amount:.3f} BCN\n"
-                    f"Сумма: {deal.rub_amount}₽\n"
-                    f"ID транзакции: <code>{result.get('transaction_id', 'N/A')[:12]}</code>"
-                )
-
-            else:
-                await callback.answer(
-                    f"❌ Ошибка API: {result.get('error', 'Unknown')}",
-                    show_alert=True
-                )
-
-        except Exception as e:
-            await callback.answer(f"❌ Ошибка: {str(e)}", show_alert=True)
-
 
 @router.message(Command("set_limits"))
 async def set_limits_start(message: Message, state: FSMContext):
@@ -618,10 +549,21 @@ async def approve_sell_deal(callback: CallbackQuery):
         deal.completed_at = datetime.utcnow()
         await session.commit()
 
-        await callback.message.edit_text(
-            f"✅ Сделка {deal.deal_number} подтверждена!\n"
-            f"Выплата произведена."
-        )
+        notify_data = await get_setting(f"notify_{deal.id}", "")
+        if notify_data:
+            import json
+            messages = json.loads(notify_data)
+            for admin_id, msg_id in messages.items():
+                try:
+                    await bot.edit_message_text(
+                        chat_id=int(admin_id),
+                        message_id=int(msg_id),
+                        text=f"✅ Сделка {deal.deal_number} подтверждена!\n"
+                             f"Выплата произведена.\n"
+                             f"Подтвердил: {callback.from_user.id}"
+                    )
+                except:
+                    pass
 
         await bot.send_message(
             deal.user_id,
@@ -665,44 +607,6 @@ async def reject_sell_deal(callback: CallbackQuery):
 
         await callback.answer("Отклонено")
 
-@router.callback_query(F.data.startswith("reject_deal:"))
-async def reject_deal(callback: CallbackQuery):
-    """Админ отклоняет сделку"""
-    if callback.from_user.id not in config.ADMIN_IDS:
-        await callback.answer("⛔️ Недостаточно прав", show_alert=True)
-        return
-
-    deal_id = callback.data.split(":")[1]
-
-    async with async_session() as session:
-        deal = await session.get(Deal, deal_id)
-
-        if not deal:
-            await callback.answer("❌ Сделка не найдена", show_alert=True)
-            return
-
-        deal.status = "cancelled"
-        await session.commit()
-
-        # Уведомляем админа
-        await callback.message.edit_text(
-            f"❌ <b>Сделка отклонена</b>\n\n"
-            f"ID: <code>{deal.deal_number}</code>\n"
-            f"Сумма: {deal.rub_amount}₽"
-        )
-
-        # Уведомляем пользователя
-        from bot_instance import bot
-        await bot.send_message(
-            deal.user_id,
-            f"❌ <b>Оплата не подтверждена</b>\n\n"
-            f"ID сделки: <code>{deal.deal_number}</code>\n"
-            f"Сумма: {deal.rub_amount}₽\n\n"
-            "Если вы оплатили, обратитесь в поддержку.\n\n"
-            "Support : @EyellizSUP"
-        )
-
-        await callback.answer("Сделка отклонена", show_alert=True)
 
 @router.message(F.text == "🔧 Настройки")
 async def admin_settings(message: Message):
@@ -730,6 +634,31 @@ async def back_to_menu(message: Message):
         reply_markup=main_menu_kb()
     )
 
+
+@router.message(F.text == "🎁 Приз топа")
+async def set_top_prize_button(message: Message, state: FSMContext):
+    if message.from_user.id not in config.ADMIN_IDS:
+        return
+
+    current_prize = await get_setting("top_prize", "")
+
+    await message.answer(
+        f"🎁 <b>Приз для топа</b>\n\n"
+        f"Текущий приз: <code>{current_prize or 'Не установлен'}</code>\n\n"
+        f"Введите новый текст приза:",
+        parse_mode="HTML"
+    )
+    await state.set_state(AdminStates.waiting_top_prize)
+
+
+@router.message(AdminStates.waiting_top_prize)
+async def set_top_prize_finish(message: Message, state: FSMContext):
+    if message.from_user.id not in config.ADMIN_IDS:
+        return
+
+    await set_setting("top_prize", message.text)
+    await message.answer(f"✅ Приз обновлён!\n\n{message.text}")
+    await state.clear()
 
 @router.callback_query(F.data.startswith("approve_buy:"))
 async def approve_buy_deal(callback: CallbackQuery):
@@ -764,6 +693,22 @@ async def approve_buy_deal(callback: CallbackQuery):
                     user.total_bought_rub = (user.total_bought_rub or 0) + deal.rub_amount
 
                 await session.commit()
+
+                notify_data = await get_setting(f"notify_{deal.id}", "")
+                if notify_data:
+                    import json
+                    messages = json.loads(notify_data)
+                    for admin_id, msg_id in messages.items():
+                        try:
+                            await bot.edit_message_text(
+                                chat_id=int(admin_id),
+                                message_id=int(msg_id),
+                                text=f"✅ Сделка {deal.deal_number} подтверждена!\n"
+                                     f"BC начислены пользователю.\n"
+                                     f"Подтвердил: {callback.from_user.id}"
+                            )
+                        except:
+                            pass
 
                 # === ВЫЧИТАЕМ ИЗ РЕЗЕРВА ===
                 rub_balance = Decimal(await get_setting("rub_balance", "0"))
@@ -805,6 +750,41 @@ async def approve_buy_deal(callback: CallbackQuery):
 
         except Exception as e:
             await callback.answer(f"❌ Ошибка: {str(e)}", show_alert=True)
+
+
+@router.message(F.text == "🔔 Порог баланса")
+async def admin_balance_alert(message: Message, state: FSMContext):  # ← Добавь state
+    if message.from_user.id not in config.ADMIN_IDS:
+        return
+
+    current_threshold = await get_setting("balance_alert_threshold", "100000")
+
+    await message.answer(
+        f"🔔 <b>Порог уведомления</b>\n\n"
+        f"Текущий порог: <code>{format_decimal(Decimal(current_threshold))} BC</code>\n\n"
+        f"Для изменения введите новое значение:\n"
+        f"<i>Например: 100000</i>",
+        parse_mode="HTML"
+    )
+    await state.set_state(AdminStates.waiting_balance_threshold)
+
+
+@router.message(AdminStates.waiting_balance_threshold)
+async def set_balance_threshold(message: Message, state: FSMContext):
+    if message.from_user.id not in config.ADMIN_IDS:
+        return
+
+    try:
+        threshold = Decimal(message.text.strip())
+        if threshold < 0:
+            await message.answer("❌ Порог не может быть отрицательным")
+            return
+
+        await set_setting("balance_alert_threshold", str(threshold))
+        await message.answer(f"✅ Порог обновлён: {threshold:.0f} BC")
+        await state.clear()
+    except:
+        await message.answer("❌ Введите корректное число")
 
 @router.message(Command("set_top_prize"))
 async def set_top_prize_start(message: Message, state: FSMContext):
