@@ -3,17 +3,16 @@ import logging
 from decimal import Decimal
 from datetime import datetime
 
-from database import get_setting
-
 from bytecoin_api import bytecoin_api
 from bot_instance import bot
 from config import config
+from database import get_setting
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Флаг, чтобы не спамить уведомлениями
-alert_sent = False
+# Словарь для отслеживания уведомлений по каждому админу
+alert_sent = {}
 
 
 async def check_balance():
@@ -25,6 +24,7 @@ async def check_balance():
         threshold_str = await get_setting("balance_alert_threshold", "100000")
         threshold = Decimal(threshold_str)
 
+        # Получаем баланс пользователя
         user_info = await bytecoin_api.get_user_info([config.BALANCE_ALERT_USER_ID])
 
         if user_info and user_info.get("items"):
@@ -32,8 +32,11 @@ async def check_balance():
         else:
             balance = Decimal("0")
 
+        logger.info(f"Balance check: {balance} (threshold: {threshold})")
+
         if balance < threshold:
-            if not alert_sent:
+            if not alert_sent.get("sent", False):
+                # Уведомляем всех админов
                 for admin_id in config.ADMIN_IDS:
                     try:
                         await bot.send_message(
@@ -45,11 +48,16 @@ async def check_balance():
                             f"Пополните баланс!",
                             parse_mode="HTML"
                         )
-                    except:
-                        pass
-                alert_sent = True
+                    except Exception as e:
+                        logger.error(f"Failed to notify admin {admin_id}: {e}")
+
+                alert_sent["sent"] = True
+                logger.warning(f"Balance alert sent: {balance} < {threshold}")
         else:
-            alert_sent = False
+            if alert_sent.get("sent", False):
+                logger.info("Balance restored, resetting alert")
+            alert_sent["sent"] = False
+
     except Exception as e:
         logger.error(f"Balance check error: {e}")
 
@@ -60,4 +68,4 @@ async def balance_monitor_loop():
 
     while True:
         await check_balance()
-        await asyncio.sleep(10)
+        await asyncio.sleep(10)  # Проверяем каждые 10 секунд
