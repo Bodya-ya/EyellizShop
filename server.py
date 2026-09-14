@@ -183,7 +183,6 @@ async def bytecoin_webhook(request: Request):
                 )
 
                 # Отправляем и сохраняем message_id для каждого админа
-                import json
                 notification_messages = {}
                 for admin_id in config.ADMIN_IDS:
                     try:
