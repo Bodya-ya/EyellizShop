@@ -599,6 +599,10 @@ async def pay_with_sbp(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(BuyStates.waiting_confirm, F.data == "pay_stars")
 async def pay_with_stars(callback: CallbackQuery, state: FSMContext):
+    stars_enabled = await get_setting("stars_enabled", "1")
+    if stars_enabled != "1":
+        await callback.answer("❌ Оплата звёздами отключена", show_alert=True)
+        return
     await callback.message.answer(
         "⭐ <b>Оплата звёздами</b>\n\n"
         f"Курс: <code>1 звезда = {config.STAR_PRICE_BUY}₽</code>\n"
