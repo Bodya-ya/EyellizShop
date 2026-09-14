@@ -54,7 +54,7 @@ def admin_menu_kb() -> ReplyKeyboardMarkup:
         keyboard=[
             [
                 KeyboardButton(text="💰 Баланс"),
-                KeyboardButton(text="🔔 Порог баланса")  # ← Новая кнопка
+                KeyboardButton(text="⭐ Вкл/Выкл звёзды")
             ],
             [
                 KeyboardButton(text="📈 Курс"),

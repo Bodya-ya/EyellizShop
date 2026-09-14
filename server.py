@@ -183,10 +183,7 @@ async def bytecoin_webhook(request: Request):
                 user.total_sold_rub = (user.total_sold_rub or 0) + rub_amount
                 await session.commit()
 
-                # Обновляем резерв
-                rub_balance = Decimal(await get_setting("rub_balance", "0"))
-                new_rub_balance = rub_balance + rub_amount
-                await set_setting("rub_balance", str(new_rub_balance))
+
 
                 # Уведомляем пользователя — СДЕЛКА
                 await bot.send_message(

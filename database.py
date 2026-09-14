@@ -37,6 +37,7 @@ class User(Base):
     is_banned = Column(Boolean, default=False)
     is_admin = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
+    total_bought_week = Column(Numeric, default=0)
 
 
 class PaymentMethod(Base):
@@ -95,6 +96,13 @@ class WebhookEvent(Base):
     processed = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
+
+class HiddenUser(Base):
+    __tablename__ = "hidden_users"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(BigInteger, unique=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
 async def init_db():
     async with engine.begin() as conn:

@@ -11,7 +11,7 @@ import uuid
 import json
 from bot_instance import bot  # ← Для bot
 from sqlalchemy import select, func  # ← Для select
-from database import async_session, User, Deal, format_decimal, get_setting, set_setting, PaymentMethod, PendingSell
+from database import async_session, User, Deal, format_decimal, get_setting, set_setting, PaymentMethod, PendingSell, HiddenUser
 from config import config
 from user_kb import main_menu_kb, payment_method_sell_kb, confirm_kb, saved_payments_kb, payment_method_buy_kb
 
@@ -326,6 +326,22 @@ async def buy_bytecoin(message: Message, state: FSMContext):
             f"Доступно: {available:.0f} BC"
         )
         return
+
+    stars_enabled = await get_setting("stars_enabled", "1")
+
+    if stars_enabled == "1":
+        kb = InlineKeyboardMarkup(
+            inline_keyboard=[
+                [InlineKeyboardButton(text="💳 СБП", callback_data="pay_sbp")],
+                [InlineKeyboardButton(text="⭐ Звёзды (мин. 10)", callback_data="pay_stars")]
+            ]
+        )
+    else:
+        kb = InlineKeyboardMarkup(
+            inline_keyboard=[
+                [InlineKeyboardButton(text="💳 СБП", callback_data="pay_sbp")]
+            ]
+        )
 
     await message.answer(
         "💎 <b>Покупка BC</b>\n\n"
@@ -964,29 +980,83 @@ async def cancel_deal(callback: CallbackQuery):
         else:
             await callback.answer("Нет активных сделок", show_alert=True)
 
+
 @router.message(F.text == "🏆 Топ покупателей")
 async def top_buyers(message: Message):
+    kb = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="📅 За неделю", callback_data="top_week"),
+                InlineKeyboardButton(text="🌍 За всё время", callback_data="top_all")
+            ]
+        ]
+    )
+    await message.answer("🏆 Выберите период:", reply_markup=kb)
+
+
+@router.callback_query(F.data == "top_week")
+async def top_week(callback: CallbackQuery):
     async with async_session() as session:
+        # Получаем скрытых
+        hidden = await session.execute(select(HiddenUser.user_id))
+        hidden_ids = [h for h in hidden.scalars().all()]
+
         result = await session.execute(
-            select(User).where(User.total_bought_coins > 0).order_by(User.total_bought_coins.desc()).limit(8)
+            select(User).where(
+                User.total_bought_week > 0,
+                User.telegram_id.notin_(hidden_ids)
+            ).order_by(User.total_bought_week.desc()).limit(8)
         )
         users = result.scalars().all()
 
         if not users:
-            return  # Просто ничего не показываем
+            await callback.answer("Пока нет покупателей за неделю", show_alert=True)
+            return
 
-        text = "🏆 Топ покупателей\n\n"
+        text = "🏆 Топ за неделю\n\n"
         for i, user in enumerate(users, 1):
             medal = "🥇" if i == 1 else "🥈" if i == 2 else "🥉" if i == 3 else f"{i}."
             name = user.first_name or "Пользователь"
-            bought = format_decimal(user.total_bought_coins)
-            text += f"{medal} {name}: {bought} BC\n"
+            text += f"{medal} {name}: {format_decimal(user.total_bought_week)} BC\n"
 
         prize = await get_setting("top_prize", "")
         if prize:
             text += f"\n🎁 Приз: {prize}\n"
 
-        await message.answer(text)
+        await callback.message.edit_text(text)
+        await callback.answer()
+
+
+@router.callback_query(F.data == "top_all")
+async def top_all(callback: CallbackQuery):
+    async with async_session() as session:
+        hidden = await session.execute(select(HiddenUser.user_id))
+        hidden_ids = [h for h in hidden.scalars().all()]
+
+        result = await session.execute(
+            select(User).where(
+                User.total_bought_coins > 0,
+                User.telegram_id.notin_(hidden_ids)
+            ).order_by(User.total_bought_coins.desc()).limit(8)
+        )
+        users = result.scalars().all()
+
+        if not users:
+            await callback.answer("Пока нет покупателей", show_alert=True)
+            return
+
+        text = "🏆 Топ за всё время\n\n"
+        for i, user in enumerate(users, 1):
+            medal = "🏅 " if i == 1 else "🏅 " if i == 2 else "🏅 " if i == 3 else f"{i}."
+            name = user.first_name or "Пользователь"
+            text += f"{medal} {name}: {format_decimal(user.total_bought_coins)} BC\n"
+
+        prize = await get_setting("top_prize", "")
+        if prize:
+            text += f"\n🎁 Приз: {prize}\n"
+
+        await callback.message.edit_text(text)
+        await callback.answer()
 
 @router.message(F.text == "👤 Мой профиль")
 async def my_profile(message: Message):

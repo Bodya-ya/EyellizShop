@@ -10,7 +10,7 @@ from config import config
 from bytecoin_api import bytecoin_api
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from database import async_session, User, Deal, get_setting, set_setting, format_decimal
+from database import async_session, User, Deal, get_setting, set_setting, format_decimal,HiddenUser
 from user_kb import admin_menu_kb, main_menu_kb
 from sqlalchemy import select, func
 from datetime import datetime
@@ -549,6 +549,17 @@ async def approve_sell_deal(callback: CallbackQuery):
         deal.completed_at = datetime.utcnow()
         await session.commit()
 
+        # Получаем данные пользователя
+        user = await session.get(User, deal.user_id)
+        username = f"@{user.username}" if user and user.username else "нет тега"
+        first_name = user.first_name if user and user.first_name else "Пользователь"
+
+        # Резерв уменьшается
+        rub_balance = Decimal(await get_setting("rub_balance", "0"))
+        new_rub_balance = rub_balance - Decimal(deal.rub_amount)
+        await set_setting("rub_balance", str(new_rub_balance))
+
+        # Редактируем у всех админов
         notify_data = await get_setting(f"notify_{deal.id}", "")
         if notify_data:
             import json
@@ -559,18 +570,23 @@ async def approve_sell_deal(callback: CallbackQuery):
                         chat_id=int(admin_id),
                         message_id=int(msg_id),
                         text=f"✅ Сделка {deal.deal_number} подтверждена!\n"
-                             f"Выплата произведена.\n"
-                             f"Подтвердил: {callback.from_user.id}"
+                             f"👤 {first_name} ({username})\n"
+                             f"💰 Выплачено: {format_decimal(deal.rub_amount)}₽\n"
+                             f"Подтвердил: {callback.from_user.first_name}"
                     )
                 except:
                     pass
 
-        await bot.send_message(
-            deal.user_id,
-            f"✅ Выплата произведена!\n\n"
-            f"📋 Сделка: {deal.deal_number}\n"
-            f"💰 Вы получили: {deal.rub_amount:.2f}₽"
-        )
+        # Уведомляем пользователя
+        try:
+            await bot.send_message(
+                deal.user_id,
+                f"✅ Выплата произведена!\n\n"
+                f"📋 Сделка: {deal.deal_number}\n"
+                f"💰 Вы получили: {format_decimal(deal.rub_amount)}₽"
+            )
+        except:
+            pass
 
         await callback.answer("✅ Подтверждено!")
 
@@ -607,6 +623,35 @@ async def reject_sell_deal(callback: CallbackQuery):
 
         await callback.answer("Отклонено")
 
+
+@router.message(Command("hide_user"))
+async def hide_user_start(message: Message, state: FSMContext):
+    if message.from_user.id not in config.ADMIN_IDS:
+        return
+    await message.answer("Введите ID пользователя для скрытия из топа:")
+    await state.set_state(AdminStates.waiting_hide_user)
+
+
+@router.message(AdminStates.waiting_hide_user)
+async def hide_user_finish(message: Message, state: FSMContext):
+    try:
+        user_id = int(message.text.strip())
+        async with async_session() as session:
+            existing = await session.scalar(
+                select(HiddenUser).where(HiddenUser.user_id == user_id)
+            )
+            if existing:
+                await message.answer("❌ Уже скрыт")
+                return
+
+            hidden = HiddenUser(user_id=user_id)
+            session.add(hidden)
+            await session.commit()
+
+        await message.answer(f"✅ Пользователь {user_id} скрыт из топа")
+        await state.clear()
+    except:
+        await message.answer("❌ Введите корректный ID")
 
 @router.message(F.text == "🔧 Настройки")
 async def admin_settings(message: Message):
@@ -690,6 +735,7 @@ async def approve_buy_deal(callback: CallbackQuery):
                 user = await session.get(User, deal.user_id)
                 if user:
                     user.total_bought_coins = (user.total_bought_coins or 0) + deal.coins_amount
+                    user.total_bought_week = (user.total_bought_week or 0) + deal.coins_amount
                     user.total_bought_rub = (user.total_bought_rub or 0) + deal.rub_amount
 
                 await session.commit()
@@ -712,12 +758,17 @@ async def approve_buy_deal(callback: CallbackQuery):
 
                 # === ВЫЧИТАЕМ ИЗ РЕЗЕРВА ===
                 rub_balance = Decimal(await get_setting("rub_balance", "0"))
-                new_rub_balance = rub_balance - Decimal(deal.rub_amount)
+                new_rub_balance = rub_balance + Decimal(deal.rub_amount)  # ← ПЛЮС!
                 await set_setting("rub_balance", str(new_rub_balance))
                 # ==========================
 
+                user = await session.get(User, deal.user_id)
+                first_name = user.first_name if user else "Пользователь"
+                username = user.username if user else "нет"
+
                 await callback.message.edit_text(
                     f"✅ Сделка {deal.deal_number} подтверждена!\n"
+                    f"👤 {first_name} (@{username})\n"  # ← Вот
                     f"BC начислены пользователю.\n"
                     f"Резерв уменьшен на {deal.rub_amount}₽"
                 )
@@ -768,6 +819,18 @@ async def admin_balance_alert(message: Message, state: FSMContext):
     )
     await state.set_state(AdminStates.waiting_balance_threshold)
 
+
+@router.message(F.text == "⭐ Вкл/Выкл звёзды")
+async def toggle_stars(message: Message):
+    if message.from_user.id not in config.ADMIN_IDS:
+        return
+
+    current = await get_setting("stars_enabled", "1")
+    new_value = "0" if current == "1" else "1"
+    await set_setting("stars_enabled", new_value)
+
+    status = "включены" if new_value == "1" else "выключены"
+    await message.answer(f"✅ Покупки звёздами {status}")
 
 @router.message(AdminStates.waiting_balance_threshold)
 async def set_balance_threshold(message: Message, state: FSMContext):
