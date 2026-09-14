@@ -710,6 +710,21 @@ async def sell_bytecoin(message: Message, state: FSMContext):
 
     methods = await get_user_payment_methods(message.from_user.id)
 
+    # Если есть сохранённые реквизиты — создаём PendingSell
+    if methods:
+        async with async_session() as session:
+            # Удаляем старые pending
+            old_pendings = await session.execute(
+                select(PendingSell).where(PendingSell.user_id == message.from_user.id)
+            )
+            for old in old_pendings.scalars().all():
+                await session.delete(old)
+
+            # Создаём новый
+            pending = PendingSell(user_id=message.from_user.id)
+            session.add(pending)
+            await session.commit()
+
     await message.answer(
         "💰 Продажа BC\n\n"
         f"📉 Курс: <code>1000 BC = {config.RATE_BUY * 1000:.2f}₽</code>\n\n"
