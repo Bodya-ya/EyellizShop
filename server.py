@@ -11,7 +11,7 @@ from fastapi import FastAPI, Request, HTTPException
 from sqlalchemy import select, func
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-from database import async_session, WebhookEvent, User, PaymentMethod, Deal, get_setting, set_setting, PendingSell
+from database import async_session, WebhookEvent, User, PaymentMethod, Deal, get_setting, set_setting, PendingSell, format_decimal
 from config import config
 from bot_instance import bot
 
@@ -111,6 +111,33 @@ async def bytecoin_webhook(request: Request):
             )
 
             if pending and method:
+                # === ПРОВЕРКА МИНИМУМА ===
+                if rub_amount < config.MIN_SELL_RUB:
+                    await bot.send_message(
+                        user_id,
+                        f"❌ <b>Минимальная сумма продажи: {config.MIN_SELL_RUB}₽</b>\n\n"
+                        f"Вы отправили: {format_decimal(rub_amount)}₽\n\n"
+                        f"Обратитесь в поддержку: @EyellizSUP",
+                        parse_mode="HTML"
+                    )
+                    for admin_id in config.ADMIN_IDS:
+                        try:
+                            await bot.send_message(
+                                admin_id,
+                                f"⚠️ Пользователь {first_name} {username}\n"
+                                f"Отправил меньше минимума!\n"
+                                f"💎 BC: {sum_coins:.0f}\n"
+                                f"💰 Сумма: {rub_amount:.2f}₽\n"
+                                f"Минимум: {config.MIN_SELL_RUB}₽"
+                            )
+                        except:
+                            pass
+
+                    await session.delete(pending)
+                    await session.commit()
+                    return {"status": "ok"}
+                # ========================
+
                 # === ЭТО СДЕЛКА — создаём ===
                 deal_number = await generate_deal_number()
                 deal = Deal(
@@ -183,8 +210,6 @@ async def bytecoin_webhook(request: Request):
                 user.total_sold_rub = (user.total_sold_rub or 0) + rub_amount
                 await session.commit()
 
-
-
                 # Уведомляем пользователя — СДЕЛКА
                 await bot.send_message(
                     user_id,
@@ -197,14 +222,18 @@ async def bytecoin_webhook(request: Request):
 
             else:
                 # === ПРОСТО ПОПОЛНЕНИЕ ===
-                await bot.send_message(
-                    config.ADMIN_ID,
-                    f"📥 Пополнение баланса!\n\n"
-                    f"👤 Пользователь: {first_name} {username}\n"
-                    f"💎 BC: {sum_coins:.0f}\n"
-                    f"💰 Эквивалент: {rub_amount:.2f}₽\n\n"
-                    f"Простое пополнение без заявки."
-                )
+                for admin_id in config.ADMIN_IDS:
+                    try:
+                        await bot.send_message(
+                            admin_id,
+                            f"📥 Пополнение баланса!\n\n"
+                            f"👤 Пользователь: {first_name} {username}\n"
+                            f"💎 BC: {sum_coins:.0f}\n"
+                            f"💰 Эквивалент: {rub_amount:.2f}₽\n\n"
+                            f"Простое пополнение без заявки."
+                        )
+                    except:
+                        pass
 
                 # Уведомляем пользователя — ПОПОЛНЕНИЕ
                 await bot.send_message(
