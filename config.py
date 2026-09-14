@@ -49,6 +49,7 @@ class Config:
     # Limits
     MIN_DEAL_RUB: Decimal = Decimal(os.getenv("MIN_DEAL_RUB", "1"))
     MAX_DEAL_RUB: Decimal = Decimal(os.getenv("MAX_DEAL_RUB", "17500"))
+    MIN_SELL_RUB: Decimal = Decimal(os.getenv("MIN_SELL_RUB", "50"))
     MAX_SELL_COINS: Decimal = Decimal(os.getenv("MAX_SELL_COINS", "9999999999"))
     MIN_BALANCE_THRESHOLD: Decimal = Decimal(os.getenv("MIN_BALANCE_THRESHOLD", "1"))
     LOW_BALANCE_ALERT: Decimal = Decimal(os.getenv("LOW_BALANCE_ALERT", "200"))

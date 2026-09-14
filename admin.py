@@ -28,7 +28,8 @@ class AdminStates(StatesGroup):
     waiting_withdraw = State()  # ← Новое
     waiting_top_prize = State()
     waiting_balance_threshold = State()  # ← Добавь
-
+    waiting_min_sell = State()
+    waiting_hide_user = State()  # ← Вот это!
 
 
 
@@ -387,7 +388,7 @@ async def set_limits_start(message: Message, state: FSMContext):
 
     await message.answer(
         "📏 Введите минимальную сумму сделки (рублей):\n"
-        "Например: 25"
+        "Например: 1"
     )
     await state.set_state(AdminStates.waiting_min_limit)
 
@@ -403,7 +404,7 @@ async def set_min_limit(message: Message, state: FSMContext):
         await state.update_data(min_limit=min_limit)
         await message.answer(
             "📏 Теперь введите максимальную сумму сделки (рублей):\n"
-            "Например: 15000"
+            "Например: 17500"
         )
         await state.set_state(AdminStates.waiting_max_limit)
     except:
@@ -418,16 +419,37 @@ async def set_max_limit(message: Message, state: FSMContext):
             await message.answer("❌ Сумма не может быть отрицательной")
             return
 
+        await state.update_data(max_limit=max_limit)
+        await message.answer(
+            "📏 Теперь введите минимальную сумму продажи BC (рублей):\n"
+            "Например: 50"
+        )
+        await state.set_state(AdminStates.waiting_min_sell)
+    except:
+        await message.answer("❌ Введите корректное число")
+
+
+@router.message(AdminStates.waiting_min_sell)
+async def set_min_sell(message: Message, state: FSMContext):
+    try:
+        min_sell = Decimal(message.text.strip())
+        if min_sell < 0:
+            await message.answer("❌ Сумма не может быть отрицательной")
+            return
+
         data = await state.get_data()
         min_limit = data.get("min_limit")
+        max_limit = data.get("max_limit")
 
         config.MIN_DEAL_RUB = min_limit
         config.MAX_DEAL_RUB = max_limit
+        config.MIN_SELL_RUB = min_sell
 
         await message.answer(
             f"✅ Лимиты обновлены!\n\n"
-            f"Минимальная сумма: {min_limit}₽\n"
-            f"Максимальная сумма: {max_limit}₽"
+            f"Минимум покупки: {min_limit}₽\n"
+            f"Максимум: {max_limit}₽\n"
+            f"Минимум продажи: {min_sell}₽"
         )
         await state.clear()
     except:
@@ -660,8 +682,9 @@ async def admin_settings(message: Message):
 
     await message.answer(
         "🔧 Настройки\n\n"
-        f"Минимальная сумма: {config.MIN_DEAL_RUB}₽\n"
-        f"Максимальная сумма: {config.MAX_DEAL_RUB}₽\n\n"
+        f"Минимум покупки: {config.MIN_DEAL_RUB}₽\n"
+        f"Максимум: {config.MAX_DEAL_RUB}₽\n"
+        f"Минимум продажи: {config.MIN_SELL_RUB}₽\n\n"
         "Команды:\n"
         "/set_rub_balance - баланс рублей\n"
         "/set_max_buy - макс. выкуп\n"

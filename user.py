@@ -711,7 +711,7 @@ async def sell_bytecoin(message: Message, state: FSMContext):
         f"📉 Курс: <code>1000 BC = {config.RATE_BUY * 1000:.2f}₽</code>\n\n"
         f"📦 Ваш баланс: {format_num(user_balance)} BC\n\n"
         f"💸 Мы можем выкупить до: <code>{format_num(available_coins)}</code> BC\n"
-        f"💵 Минимум: <code>{config.MIN_DEAL_RUB}₽</code> | Максимум: <code>{config.MAX_DEAL_RUB}₽</code>\n\n"
+        f"💵 Минимум: <code>{config.MIN_SELL_RUB}₽</code> | Максимум: <code>{config.MAX_DEAL_RUB}₽</code>\n\n"
         f"Выберите реквизиты для выплаты:",
         parse_mode="HTML",
         reply_markup=saved_payments_kb(methods) if methods else payment_method_sell_kb()
@@ -860,10 +860,10 @@ async def process_sell_amount(message: Message, state: FSMContext):
         rub_amount = coins_amount * config.RATE_BUY
 
         # Проверяем лимиты
-        if rub_amount < config.MIN_DEAL_RUB:
-            min_coins = config.MIN_DEAL_RUB / config.RATE_BUY
+        if rub_amount < config.MIN_SELL_RUB:
+            min_coins = config.MIN_SELL_RUB / config.RATE_BUY
             await message.answer(
-                f"❌ Минимальная сумма: {config.MIN_DEAL_RUB}₽\n"
+                f"❌ Минимальная сумма продажи: {config.MIN_SELL_RUB}₽\n"
                 f"Нужно минимум: {min_coins:.0f} BC"
             )
             return
