@@ -529,12 +529,14 @@ async def continue_buy(callback: CallbackQuery, state: FSMContext):
         session.add(deal)
         await session.commit()
 
+    requisites = await get_setting("payment_requisites", "+7 958 238-99-88 (СБЕРБАНК)")
+
     await callback.message.answer(
         f"💳 <b>Оплата по СБП</b>\n\n"
         f"💰 Сумма: {amount_rub:.2f}₽\n"
         f"💎 Получите: {coins_amount:.0f} BC\n"
         f"📋 Сделка: {deal_number}\n\n"
-        f"‼️<code>+7 958 238-99-88</code> (🅰️АЛЬФА-БАНК)‼️\n\n"
+        f"‼️<code>{requisites}</code>‼️\n\n"
         f"⏰ Перевести в течении часа!\n\n"
         f"После оплаты нажмите:",
         parse_mode="HTML",

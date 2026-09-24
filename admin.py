@@ -30,6 +30,7 @@ class AdminStates(StatesGroup):
     waiting_balance_threshold = State()  # ← Добавь
     waiting_min_sell = State()
     waiting_hide_user = State()  # ← Вот это!
+    waiting_requisites = State()
 
 
 
@@ -218,6 +219,33 @@ async def set_max_sell_finish(message: Message, state: FSMContext):
         await state.clear()
     except:
         await message.answer("❌ Введите корректное число")
+
+
+@router.message(F.text == "💳 Реквизиты")
+async def admin_requisites(message: Message, state: FSMContext):
+    if message.from_user.id not in config.ADMIN_IDS:
+        return
+
+    current = await get_setting("payment_requisites", "")
+
+    await message.answer(
+        f"💳 <b>Реквизиты для оплаты</b>\n\n"
+        f"Текущие: <code>{current or 'Не установлены'}</code>\n\n"
+        f"Введите новые реквизиты:\n"
+        f"<i>Например: +7 958 238-99-88 (Ю-МАНИ КОШЕЛЁК)</i>",
+        parse_mode="HTML"
+    )
+    await state.set_state(AdminStates.waiting_requisites)
+
+
+@router.message(AdminStates.waiting_requisites)
+async def set_requisites(message: Message, state: FSMContext):
+    if message.from_user.id not in config.ADMIN_IDS:
+        return
+
+    await set_setting("payment_requisites", message.text)
+    await message.answer(f"✅ Реквизиты обновлены:\n\n{message.text}")
+    await state.clear()
 
 @router.message(F.text == "📈 Курс")
 async def admin_rate(message: Message):

@@ -58,7 +58,8 @@ def admin_menu_kb() -> ReplyKeyboardMarkup:
             ],
             [
                 KeyboardButton(text="📈 Курс"),
-                KeyboardButton(text="📋 Активные сделки")
+                KeyboardButton(text="📋 Активные сделки"),
+                KeyboardButton(text="💳 Реквизиты")
             ],
             [
                 KeyboardButton(text="📜 История сделок"),
