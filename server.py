@@ -271,58 +271,66 @@ async def crypto_webhook(request: Request):
             invoice_payload = payload.get("payload")
             invoice_id = payload.get("invoice_id")
 
+            # Парсим payload: buy_{deal_id}_{user_id}
             parts = invoice_payload.split("_")
-            user_id = int(parts[1])
-            coins_amount = Decimal(parts[2])
+            deal_id = int(parts[1])
+            user_id = int(parts[2])
 
-            result = await bytecoin_api.transfer_to_user(
-                user_id=user_id,
-                sum_coins=coins_amount,
-                idempotency_key=f"crypto-{invoice_id}"
-            )
+            logger.info(f"CryptoBot payment: deal_id={deal_id}, user_id={user_id}")
 
-            if result.get("status") == "ok":
-                deal_number = f"#crypto-{invoice_id}"
+            async with async_session() as session:
+                # Находим сделку по deal_id
+                deal = await session.get(Deal, deal_id)
 
-                async with async_session() as session:
-                    deal = Deal(
-                        deal_number=deal_number,
-                        user_id=user_id,
-                        type="buy",
-                        coins_amount=coins_amount,
-                        rub_amount=coins_amount * config.RATE_SELL,
-                        rate=config.RATE_SELL,
-                        status="completed",
-                        payment_method="usdt",
-                        idempotency_key=f"crypto-{invoice_id}"
-                    )
-                    session.add(deal)
+                if not deal:
+                    logger.error(f"CryptoBot webhook: deal {deal_id} not found")
+                    return {"ok": True}
 
-                    user = await session.get(User, user_id)
-                    if user:
-                        user.total_bought_coins = (user.total_bought_coins or 0) + coins_amount
-                        user.total_bought_week = (user.total_bought_week or 0) + coins_amount
-                        user.total_bought_rub = (user.total_bought_rub or 0) + (coins_amount * config.RATE_SELL)
-                    await session.commit()
+                if deal.status == "completed":
+                    logger.info(f"CryptoBot webhook: deal {deal_id} already completed")
+                    return {"ok": True}
 
-                await bot.send_message(
-                    user_id,
-                    f"✅ Оплата USDT получена!\n\n"
-                    f"📋 Сделка: {deal_number}\n"
-                    f"💎 Вы получили: {coins_amount:.0f} BC"
+                # Начисляем BC
+                result = await bytecoin_api.transfer_to_user(
+                    user_id=user_id,
+                    sum_coins=deal.coins_amount,
+                    idempotency_key=f"crypto-{invoice_id}"
                 )
 
-                for admin_id in config.ADMIN_IDS:
-                    try:
-                        await bot.send_message(
-                            admin_id,
-                            f"💰 Оплата USDT!\n\n"
-                            f"👤 User ID: {user_id}\n"
-                            f"💎 BC: {coins_amount:.0f}\n"
-                            f"✅ Завершена автоматически"
-                        )
-                    except:
-                        pass
+                if result.get("status") == "ok":
+                    deal.status = "completed"
+                    deal.transaction_id = result.get("transaction_id")
+                    await session.commit()
+
+                    # Обновляем статистику
+                    user = await session.get(User, user_id)
+                    if user:
+                        user.total_bought_coins = (user.total_bought_coins or 0) + deal.coins_amount
+                        user.total_bought_rub = (user.total_bought_rub or 0) + deal.rub_amount
+                        user.total_bought_week = (user.total_bought_week or 0) + deal.coins_amount
+                        await session.commit()
+
+                    await bot.send_message(
+                        user_id,
+                        f"✅ Оплата USDT получена!\n\n"
+                        f"📋 Сделка: {deal.deal_number}\n"
+                        f"💎 Вы получили: {deal.coins_amount:.0f} BC"
+                    )
+
+                    for admin_id in config.ADMIN_IDS:
+                        try:
+                            await bot.send_message(
+                                admin_id,
+                                f"💰 Оплата USDT!\n\n"
+                                f"📋 Сделка: {deal.deal_number}\n"
+                                f"👤 User ID: {user_id}\n"
+                                f"💎 BC: {deal.coins_amount:.0f}\n"
+                                f"✅ Завершена автоматически"
+                            )
+                        except:
+                            pass
+                else:
+                    logger.error(f"CryptoBot: transfer failed: {result.get('error')}")
 
         return {"ok": True}
 
