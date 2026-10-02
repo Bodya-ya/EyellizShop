@@ -347,7 +347,7 @@ async def buy_bytecoin(message: Message, state: FSMContext):
 
     await message.answer(
         "💎 <b>Покупка BC</b>\n\n"
-        f"📈 Курс: <code>1000 BC = {config.RATE_SELL * 1000:.2f}₽</code>\n\n"
+        f"<tg-emoji emoji-id={5429651785352501917}>💎</tg-emoji> Курс: <code>1000 BC = {config.RATE_SELL * 1000:.2f}₽</code>\n\n"
         f"📦 Доступно: {format_num(available)} BC\n\n"
         f"💵 Введите сумму в рублях <i>(макс. {format_num(int(max_rub))}₽)</i>:",
         parse_mode="HTML",
@@ -393,7 +393,7 @@ async def quick_buy(callback: CallbackQuery, state: FSMContext):
 
     usdt_enabled = await get_setting("usdt_enabled", "1")
     if usdt_enabled == "1":
-        buttons.append([InlineKeyboardButton(text="🪙 USDT", callback_data="pay_usdt")])
+        buttons.append([InlineKeyboardButton(text="💲 USDT", callback_data="pay_usdt")])
 
     stars_enabled = await get_setting("stars_enabled", "1")
     if stars_enabled == "1":
@@ -1556,7 +1556,7 @@ async def pay_with_usdt(callback: CallbackQuery, state: FSMContext):
         parse_mode="HTML",
         reply_markup=InlineKeyboardMarkup(
             inline_keyboard=[
-                [InlineKeyboardButton(text="Оплатить USDT", url=invoice.bot_invoice_url)]
+                [InlineKeyboardButton(text="Оплатить через CryptoBot -💲USDT", url=invoice.bot_invoice_url)]
             ]
         )
     )
