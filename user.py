@@ -1422,9 +1422,9 @@ async def add_new_payment(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(BuyStates.waiting_confirm, F.data == "pay_usdt")
 async def pay_with_usdt(callback: CallbackQuery, state: FSMContext):
-    import main
+    import crypto_instance
 
-    if main.crypto is None:
+    if crypto_instance.crypto is None:
         await callback.answer("⏳ Подождите, бот загружается...", show_alert=True)
         return
 
@@ -1434,7 +1434,7 @@ async def pay_with_usdt(callback: CallbackQuery, state: FSMContext):
 
     usdt_amount = amount_rub / config.USDT_RATE
 
-    invoice = await main.crypto.create_invoice(
+    invoice = await crypto_instance.crypto.create_invoice(
         asset="USDT",
         amount=float(usdt_amount),
         description=f"Покупка {coins_amount:.0f} BC",

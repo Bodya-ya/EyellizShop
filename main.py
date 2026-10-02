@@ -8,23 +8,23 @@ from database import init_db
 from config import config
 from balance_monitor import reset_weekly_top  # ← Импорт
 
+import crypto_instance  # ← Импорт модуля
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
 
-
-# Глобальная переменная
-crypto = None
-
 async def main():
-    global crypto
     # Инициализация БД
     await init_db()
     logger.info("Database initialized")
 
-    crypto = AioCryptoPay(token=config.CRYPTO_PAY_TOKEN, network=Networks.MAIN_NET)
+    crypto_instance.crypto = AioCryptoPay(
+        token=config.CRYPTO_PAY_TOKEN,
+        network=Networks.MAIN_NET
+    )
     logger.info("CryptoBot client initialized")
 
     # Создаём бота
