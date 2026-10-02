@@ -346,6 +346,10 @@ async def set_rate_sell_finish(message: Message, state: FSMContext):
         config.RATE_BUY = rate_buy
         config.RATE_SELL = rate_per_coin
 
+        # Сохраняем в БД
+        await set_setting("rate_buy", str(rate_buy))
+        await set_setting("rate_sell", str(rate_per_coin))
+
         await message.answer(
             f"✅ Курсы обновлены!\n\n"
             f"Покупка: 1000 Bytecoin = {rate_buy * 1000}₽\n"

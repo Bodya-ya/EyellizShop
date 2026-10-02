@@ -6,11 +6,12 @@ import uuid
 from datetime import datetime, timedelta
 from decimal import Decimal
 import logging
-import json
+
 from fastapi import FastAPI, Request, HTTPException
 from sqlalchemy import select, func
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
+from bytecoin_api import bytecoin_api
 from database import async_session, WebhookEvent, User, PaymentMethod, Deal, get_setting, set_setting, PendingSell, format_decimal
 from config import config
 from bot_instance import bot
@@ -28,8 +29,24 @@ async def generate_deal_number() -> str:
         return f"#{count + 1}"
 
 
+def check_crypto_signature(token: str, body: str, headers: dict) -> bool:
+    """Проверяет подпись вебхука CryptoBot"""
+    signature = headers.get("crypto-pay-api-signature")
+    if not signature:
+        return False
+
+    secret = hashlib.sha256(token.encode()).digest()
+    expected = hmac.new(
+        secret,
+        body.encode(),
+        hashlib.sha256
+    ).hexdigest()
+
+    return hmac.compare_digest(expected, signature)
+
+
 def verify_signature(timestamp: str, event_id: str, raw_body: bytes, signature: str) -> bool:
-    """Проверяет подпись webhook"""
+    """Проверяет подпись Bytecoin webhook"""
     try:
         message = f"{timestamp}.{event_id}.{raw_body.decode()}"
         expected = hmac.new(
@@ -48,7 +65,7 @@ def verify_signature(timestamp: str, event_id: str, raw_body: bytes, signature: 
 
 @app.post("/webhook/bytecoin")
 async def bytecoin_webhook(request: Request):
-    """Обрабатывает входящие переводы"""
+    """Обрабатывает входящие переводы BC"""
     try:
         event_id = request.headers.get("X-Bytecoin-Event-ID")
         timestamp = request.headers.get("X-Bytecoin-Timestamp")
@@ -89,21 +106,19 @@ async def bytecoin_webhook(request: Request):
             session.add(event)
             await session.commit()
 
-            rub_amount = sum_coins * config.RATE_BUY
+            rate_buy = Decimal(await get_setting("rate_buy", str(config.RATE_BUY)))
+            rub_amount = sum_coins * rate_buy
 
-            # Ищем пользователя
             user = await session.get(User, user_id)
             username = f"@{user.username}" if user and user.username else "Нет тега"
             first_name = user.first_name if user and user.first_name else "Пользователь"
 
-            # Ищем реквизиты
             method = await session.scalar(
                 select(PaymentMethod).where(
                     PaymentMethod.user_id == user_id
                 ).order_by(PaymentMethod.id.desc())
             )
 
-            # === ПРОВЕРЯЕМ, ЕСТЬ ЛИ ЗАЯВКА ===
             pending = await session.scalar(
                 select(PendingSell).where(
                     PendingSell.user_id == user_id
@@ -111,7 +126,6 @@ async def bytecoin_webhook(request: Request):
             )
 
             if pending and method:
-                # === ПРОВЕРКА МИНИМУМА ===
                 if rub_amount < config.MIN_SELL_RUB:
                     await bot.send_message(
                         user_id,
@@ -136,9 +150,7 @@ async def bytecoin_webhook(request: Request):
                     await session.delete(pending)
                     await session.commit()
                     return {"status": "ok"}
-                # ========================
 
-                # === ЭТО СДЕЛКА — создаём ===
                 deal_number = await generate_deal_number()
                 deal = Deal(
                     deal_number=deal_number,
@@ -146,7 +158,7 @@ async def bytecoin_webhook(request: Request):
                     type="sell",
                     coins_amount=sum_coins,
                     rub_amount=rub_amount,
-                    rate=config.RATE_BUY,
+                    rate=rate_buy,
                     status="checking",
                     payment_method=method.method_type,
                     transaction_id=transaction_id,
@@ -155,7 +167,6 @@ async def bytecoin_webhook(request: Request):
                 session.add(deal)
                 await session.commit()
 
-                # Удаляем pending
                 await session.delete(pending)
                 await session.commit()
 
@@ -166,7 +177,6 @@ async def bytecoin_webhook(request: Request):
                 else:
                     payment_info = "Не указано"
 
-                # Кнопка подтверждения для админа
                 admin_kb = InlineKeyboardMarkup(
                     inline_keyboard=[
                         [
@@ -182,7 +192,6 @@ async def bytecoin_webhook(request: Request):
                     ]
                 )
 
-                # Отправляем и сохраняем message_id для каждого админа
                 notification_messages = {}
                 for admin_id in config.ADMIN_IDS:
                     try:
@@ -201,15 +210,12 @@ async def bytecoin_webhook(request: Request):
                     except:
                         pass
 
-                # Сохраняем ID сообщений
                 await set_setting(f"notify_{deal.id}", json.dumps(notification_messages))
 
-                # Обновляем статистику
                 user.total_sold_coins = (user.total_sold_coins or 0) + sum_coins
                 user.total_sold_rub = (user.total_sold_rub or 0) + rub_amount
                 await session.commit()
 
-                # Уведомляем пользователя — СДЕЛКА
                 await bot.send_message(
                     user_id,
                     f"✅ Перевод получен!\n\n"
@@ -220,7 +226,6 @@ async def bytecoin_webhook(request: Request):
                 )
 
             else:
-                # === ПРОСТО ПОПОЛНЕНИЕ ===
                 for admin_id in config.ADMIN_IDS:
                     try:
                         await bot.send_message(
@@ -234,7 +239,6 @@ async def bytecoin_webhook(request: Request):
                     except:
                         pass
 
-                # Уведомляем пользователя — ПОПОЛНЕНИЕ
                 await bot.send_message(
                     user_id,
                     f"✅ Вы пополнили резерв бота на {sum_coins:.0f} BC!\n\n"
@@ -248,6 +252,83 @@ async def bytecoin_webhook(request: Request):
         logger.error(f"Webhook error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
+@app.post("/crypto-webhook")
+async def crypto_webhook(request: Request):
+    """Обрабатывает вебхуки от CryptoBot (оплата USDT)"""
+    try:
+        raw_body = await request.body()
+        raw_str = raw_body.decode("utf-8")
+
+        if not check_crypto_signature(config.CRYPTO_PAY_TOKEN, raw_str, dict(request.headers)):
+            logger.error("CryptoBot webhook: Invalid signature")
+            raise HTTPException(status_code=400, detail="Invalid signature")
+
+        data = json.loads(raw_str)
+
+        if data.get("update_type") == "invoice_paid":
+            payload = data.get("payload", {})
+            invoice_payload = payload.get("payload")
+            invoice_id = payload.get("invoice_id")
+
+            parts = invoice_payload.split("_")
+            user_id = int(parts[1])
+            coins_amount = Decimal(parts[2])
+
+            result = await bytecoin_api.transfer_to_user(
+                user_id=user_id,
+                sum_coins=coins_amount,
+                idempotency_key=f"crypto-{invoice_id}"
+            )
+
+            if result.get("status") == "ok":
+                deal_number = f"#crypto-{invoice_id}"
+
+                async with async_session() as session:
+                    deal = Deal(
+                        deal_number=deal_number,
+                        user_id=user_id,
+                        type="buy",
+                        coins_amount=coins_amount,
+                        rub_amount=coins_amount * config.RATE_SELL,
+                        rate=config.RATE_SELL,
+                        status="completed",
+                        payment_method="usdt",
+                        idempotency_key=f"crypto-{invoice_id}"
+                    )
+                    session.add(deal)
+
+                    user = await session.get(User, user_id)
+                    if user:
+                        user.total_bought_coins = (user.total_bought_coins or 0) + coins_amount
+                        user.total_bought_week = (user.total_bought_week or 0) + coins_amount
+                        user.total_bought_rub = (user.total_bought_rub or 0) + (coins_amount * config.RATE_SELL)
+                    await session.commit()
+
+                await bot.send_message(
+                    user_id,
+                    f"✅ Оплата USDT получена!\n\n"
+                    f"📋 Сделка: {deal_number}\n"
+                    f"💎 Вы получили: {coins_amount:.0f} BC"
+                )
+
+                for admin_id in config.ADMIN_IDS:
+                    try:
+                        await bot.send_message(
+                            admin_id,
+                            f"💰 Оплата USDT!\n\n"
+                            f"👤 User ID: {user_id}\n"
+                            f"💎 BC: {coins_amount:.0f}\n"
+                            f"✅ Завершена автоматически"
+                        )
+                    except:
+                        pass
+
+        return {"ok": True}
+
+    except Exception as e:
+        logger.error(f"CryptoBot webhook error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/health")
 async def health_check():

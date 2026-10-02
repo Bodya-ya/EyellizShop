@@ -1,4 +1,5 @@
 import os
+from aiocryptopay import AioCryptoPay, Networks
 from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton, PreCheckoutQuery, ContentType
 from aiogram.filters import Command
@@ -20,6 +21,11 @@ logger = logging.getLogger(__name__)
 
 router = Router()
 
+class BuyStates(StatesGroup):
+    waiting_amount = State()
+    waiting_confirm = State()
+    waiting_stars_amount = State()  # ← Для ввода звёзд
+
 MAIN_MENU_BUTTONS = [
     "Купить BC 💎",
     "Продать BC 💎",
@@ -29,10 +35,6 @@ MAIN_MENU_BUTTONS = [
     "ℹ️ О сервисе"
 ]
 
-class BuyStates(StatesGroup):
-    waiting_amount = State()
-    waiting_confirm = State()
-    waiting_stars_amount = State()  # ← Для ввода звёзд
 
 
 
@@ -328,20 +330,17 @@ async def buy_bytecoin(message: Message, state: FSMContext):
         return
 
     stars_enabled = await get_setting("stars_enabled", "1")
+    usdt_enabled = await get_setting("usdt_enabled", "1")
+
+    buttons = [[InlineKeyboardButton(text="💳 СБП", callback_data="pay_sbp")]]
+
+    if usdt_enabled == "1":
+        buttons.append([InlineKeyboardButton(text="🪙 USDT", callback_data="pay_usdt")])
 
     if stars_enabled == "1":
-        kb = InlineKeyboardMarkup(
-            inline_keyboard=[
-                [InlineKeyboardButton(text="💳 СБП", callback_data="pay_sbp")],
-                [InlineKeyboardButton(text="⭐ Звёзды (мин. 10)", callback_data="pay_stars")]
-            ]
-        )
-    else:
-        kb = InlineKeyboardMarkup(
-            inline_keyboard=[
-                [InlineKeyboardButton(text="💳 СБП", callback_data="pay_sbp")]
-            ]
-        )
+        buttons.append([InlineKeyboardButton(text="⭐ Звёзды (мин. 10)", callback_data="pay_stars")])
+
+    kb = InlineKeyboardMarkup(inline_keyboard=buttons)
 
     await message.answer(
         "💎 <b>Покупка BC</b>\n\n"
@@ -349,16 +348,7 @@ async def buy_bytecoin(message: Message, state: FSMContext):
         f"📦 Доступно: {format_num(available)} BC\n\n"
         f"✅ Выберите способ оплаты:\n",
         parse_mode="HTML",
-        reply_markup=InlineKeyboardMarkup(
-            inline_keyboard=[
-                [
-                    InlineKeyboardButton(text="💳 СБП", callback_data="pay_sbp")
-                ],
-                [
-                    InlineKeyboardButton(text="⭐ ТГ Звёзды (минимум 10)", callback_data="pay_stars")
-                ]
-            ]
-        )
+        reply_markup=kb
     )
     await state.set_state(BuyStates.waiting_confirm)
 
@@ -1428,3 +1418,39 @@ async def add_new_payment(callback: CallbackQuery, state: FSMContext):
         reply_markup=payment_method_sell_kb()
     )
     await state.set_state(SellStates.waiting_payment_method)
+
+@router.callback_query(BuyStates.waiting_confirm, F.data == "pay_usdt")
+async def pay_with_usdt(callback: CallbackQuery, state: FSMContext):
+    from main import crypto
+    if crypto is None:
+        await callback.answer("⏳ Подождите, бот загружается...", show_alert=True)
+        return
+    data = await state.get_data()
+    amount_rub = data.get("amount_rub")
+    coins_amount = data.get("coins_amount")
+
+    # Конвертируем рубли в USDT
+    usdt_amount = amount_rub / config.USDT_RATE
+
+    invoice = await crypto.create_invoice(
+        asset="USDT",
+        amount=float(usdt_amount),
+        description=f"Покупка {coins_amount:.0f} BC",
+        payload=f"buy_{callback.from_user.id}_{coins_amount}",
+        expires_in=3600
+    )
+
+    await callback.message.answer(
+        f"💎 <b>Оплата USDT</b>\n\n"
+        f"📦 Получите: {coins_amount:.0f} BC\n"
+        f"💵 Сумма: {amount_rub:.2f}₽\n"
+        f"🪙 В USDT: {usdt_amount:.2f}\n\n"
+        f"Нажмите кнопку для оплаты:",
+        parse_mode="HTML",
+        reply_markup=InlineKeyboardMarkup(
+            inline_keyboard=[
+                [InlineKeyboardButton(text="Оплатить USDT", url=invoice.bot_invoice_url)]
+            ]
+        )
+    )
+    await callback.answer()

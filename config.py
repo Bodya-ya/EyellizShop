@@ -42,6 +42,9 @@ class Config:
     WEBHOOK_HOST: str = os.getenv("WEBHOOK_HOST", "0.0.0.0")
     WEBHOOK_PORT: int = int(os.getenv("WEBHOOK_PORT", "8080"))
 
+    CRYPTO_PAY_TOKEN: str = os.getenv("CRYPTO_PAY_TOKEN", "")
+    USDT_RATE: Decimal = Decimal(os.getenv("USDT_RATE", "81"))
+
     # Rates
     RATE_BUY: Decimal = Decimal(os.getenv("RATE_BUY", "0.00087"))
     RATE_SELL: Decimal = Decimal(os.getenv("RATE_SELL", "0.00115"))

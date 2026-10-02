@@ -2,7 +2,7 @@ import asyncio
 import logging
 from aiogram import Dispatcher, Bot
 from aiogram.fsm.storage.memory import MemoryStorage
-
+from aiocryptopay import AioCryptoPay, Networks
 from __init__ import register_all_handlers
 from database import init_db
 from config import config
@@ -15,10 +15,17 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+# Глобальная переменная
+crypto = None
+
 async def main():
+    global crypto
     # Инициализация БД
     await init_db()
     logger.info("Database initialized")
+
+    crypto = AioCryptoPay(token=config.CRYPTO_PAY_TOKEN, network=Networks.MAIN_NET)
+    logger.info("CryptoBot client initialized")
 
     # Создаём бота
     bot = Bot(token=config.BOT_TOKEN)
