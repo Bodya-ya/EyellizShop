@@ -227,7 +227,7 @@ async def finish_sell_deal(event, state: FSMContext, payment_method: str):
     )
 
     # Отправляем сообщение пользователю
-    # Отправляем сообщение пользователю
+
     if payment_method == "stars":
         stars = rub_amount / Decimal("1.63")
         payment_text = f"⭐ Вы получите: {stars:.0f} звёзд"
@@ -235,7 +235,7 @@ async def finish_sell_deal(event, state: FSMContext, payment_method: str):
         payment_text = f"💰 Вы получите: {rub_amount:.2f}₽"
 
     text = (
-        f"tg-emoji emoji-id={5215538285438311443}>💎</tg-emoji> Сделка создана!\n\n"
+        f'<tg-emoji emoji-id="{5215538285438311443}">💎</tg-emoji> Сделка создана!\n\n"'
         f"📋 Сделка: {deal_number}\n"
         f"💎 BC: {coins_amount:.0f}\n"
         f"{payment_text}\n"
@@ -402,7 +402,7 @@ async def quick_buy(callback: CallbackQuery, state: FSMContext):
     buttons.append([InlineKeyboardButton(text="🔄 Изменить сумму", callback_data="change_buy_amount")])
 
     await callback.message.answer(
-        f"tg-emoji emoji-id={5215538285438311443}>💎</tg-emoji> <b>Проверьте детали:</b>\n\n"
+        f'<tg-emoji emoji-id="{5215538285438311443}">💎</tg-emoji> <b>Проверьте детали:</b>\n\n'
         f"💰 Сумма: {amount_rub:.2f}₽\n"
         f"💎 Получите: {coins_amount:.0f} BC\n"
         f"📈 Курс: 1000 BC = {config.RATE_SELL * 1000:.2f}₽\n\n"
@@ -540,7 +540,7 @@ async def process_buy_amount(message: Message, state: FSMContext):
         buttons.append([InlineKeyboardButton(text="🔄 Изменить сумму", callback_data="change_buy_amount")])
 
         await message.answer(
-            f"tg-emoji emoji-id={5215538285438311443}>💎</tg-emoji> <b>Проверьте детали:</b>\n\n"
+            f'<tg-emoji emoji-id="{5215538285438311443}">💎</tg-emoji> <b>Проверьте детали:</b>\n\n'
             f"💰 Сумма: {amount_rub:.2f}₽\n"
             f"💎 Получите: {coins_amount:.0f} BC\n"
             f"📈 Курс: 1000 BC = {config.RATE_SELL * 1000:.2f}₽\n\n"
@@ -700,7 +700,7 @@ async def process_stars_amount(message: Message, state: FSMContext):
         )
 
         await message.answer(
-            f"tg-emoji emoji-id={5215538285438311443}>💎</tg-emoji> <b>Проверьте:</b>\n\n"
+            f'<tg-emoji emoji-id="{5215538285438311443}">💎</tg-emoji> <b>Проверьте:</b>\n\n"'
             f"⭐ Звёзд: {stars_amount}\n"
             f"💰 Эквивалент: {rub_amount:.2f}₽\n"
             f"💎 Получите: {coins_amount:.0f} BC\n\n"
@@ -852,7 +852,7 @@ async def process_successful_payment(message: Message, state: FSMContext):
         )
 
         await message.answer(
-            f"tg-emoji emoji-id={5215538285438311443}>💎</tg-emoji> Оплата звёздами успешна!\n\n"
+            f'<tg-emoji emoji-id="{5215538285438311443}">💎</tg-emoji> Оплата звёздами успешна!\n\n"'
             f"📋 Сделка: {deal_number}\n"
             f"⭐ Потрачено: {stars_amount:.0f} звёзд\n"
             f"💎 Вы получили: {coins_amount:.0f} BC"
@@ -892,7 +892,7 @@ async def use_saved_payment(callback: CallbackQuery, state: FSMContext):
 
             # НЕ создаём сделку! Просто показываем инструкцию
             await callback.message.answer(
-                f"tg-emoji emoji-id={5215538285438311443}>💎</tg-emoji> Выбрано: {payment_info}\n\n"
+                f'<tg-emoji emoji-id="{5215538285438311443}">💎</tg-emoji> Выбрано: {payment_info}\n\n"'
                 f"Переведите BC любым для вас удобным методом:\n\n"
                 f"🔢 Указать количество — если хотите узнать сумму выплаты в рублях.\n\n"
                 f"🔗 По ссылке — переведите любую сумму, мы автоматически посчитаем выплату.\n\n"
@@ -1284,7 +1284,7 @@ async def save_payment(callback: CallbackQuery, state: FSMContext):
     )
 
     await callback.message.answer(
-        f"tg-emoji emoji-id={5215538285438311443}>💎</tg-emoji> Реквизиты сохранены!\n\n"
+        f'<tg-emoji emoji-id="{5215538285438311443}">💎</tg-emoji> Реквизиты сохранены!\n\n"'
         f"Теперь переведите BC:\n\n"
         f"🔢 Указать количество — если хотите чтобы мы посчитали сколько будет ваша выплата.\n\n"
         f"🔗 По ссылке — переведите любую сумму, мы автоматически посчитаем выплату.\n\n"
