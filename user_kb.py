@@ -87,7 +87,7 @@ def saved_payments_kb(methods: list) -> InlineKeyboardMarkup:
             label = f"💳 {method.card_bank or 'Карта'} •••• {method.card_number[-4:] if method.card_number else ''}"
             callback = f"use_payment:{method.id}"
         elif method.method_type == "sbp":
-            label = f"📱 {method.sbp_bank or 'СБП'} {method.sbp_phone}"
+            label = f"<tg-emoji emoji-id={5217961106554769883}>💎</tg-emoji> {method.sbp_bank or 'СБП'} {method.sbp_phone}"
             callback = f"use_payment:{method.id}"
 
         buttons.append([InlineKeyboardButton(text=label, callback_data=callback)])
