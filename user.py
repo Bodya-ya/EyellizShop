@@ -320,7 +320,6 @@ async def buy_bytecoin(message: Message, state: FSMContext):
     balance = await get_cached_balance()
     max_sell = Decimal(await get_setting("max_sell_coins", "9999999999"))
     available = min(balance, max_sell)
-    available_rub = available * config.RATE_SELL
 
     if available < 1:
         await message.answer(
@@ -329,28 +328,14 @@ async def buy_bytecoin(message: Message, state: FSMContext):
         )
         return
 
-    stars_enabled = await get_setting("stars_enabled", "1")
-    usdt_enabled = await get_setting("usdt_enabled", "1")
-
-    buttons = [[InlineKeyboardButton(text="💳 СБП", callback_data="pay_sbp")]]
-
-    if usdt_enabled == "1":
-        buttons.append([InlineKeyboardButton(text="🪙 USDT", callback_data="pay_usdt")])
-
-    if stars_enabled == "1":
-        buttons.append([InlineKeyboardButton(text="⭐ Звёзды (мин. 10)", callback_data="pay_stars")])
-
-    kb = InlineKeyboardMarkup(inline_keyboard=buttons)
-
     await message.answer(
         "💎 <b>Покупка BC</b>\n\n"
         f"📈 Курс: <code>1000 BC = {config.RATE_SELL * 1000:.2f}₽</code>\n\n"
         f"📦 Доступно: {format_num(available)} BC\n\n"
-        f"✅ Выберите способ оплаты:\n",
-        parse_mode="HTML",
-        reply_markup=kb
+        f"💵 Введите сумму в рублях:",
+        parse_mode="HTML"
     )
-    await state.set_state(BuyStates.waiting_confirm)
+    await state.set_state(BuyStates.waiting_amount)
 
 
 @router.message(F.text == "📊 Курс и лимиты")
@@ -434,7 +419,6 @@ async def process_buy_amount(message: Message, state: FSMContext):
         return
 
     try:
-        # Парсим сумму с поддержкой "к" и "кк"
         amount_rub = parse_amount(message.text)
 
         if amount_rub < config.MIN_DEAL_RUB:
@@ -445,7 +429,6 @@ async def process_buy_amount(message: Message, state: FSMContext):
             await message.answer(f"❌ Максимальная сумма: {config.MAX_DEAL_RUB}₽")
             return
 
-        # Проверяем доступный баланс BC
         balance = await get_cached_balance()
         max_sell = Decimal(await get_setting("max_sell_coins", "9999999999"))
         available_coins = min(balance, max_sell)
@@ -465,21 +448,29 @@ async def process_buy_amount(message: Message, state: FSMContext):
             coins_amount=coins_amount
         )
 
+        # Формируем кнопки
+        buttons = [
+            [InlineKeyboardButton(text="💳 СБП", callback_data="continue_buy")]
+        ]
+
+        usdt_enabled = await get_setting("usdt_enabled", "1")
+        if usdt_enabled == "1":
+            buttons.append([InlineKeyboardButton(text="🪙 USDT", callback_data="pay_usdt")])
+
+        stars_enabled = await get_setting("stars_enabled", "1")
+        if stars_enabled == "1":
+            buttons.append([InlineKeyboardButton(text="⭐ Звёзды", callback_data="pay_stars_after_amount")])
+
+        buttons.append([InlineKeyboardButton(text="🔄 Изменить сумму", callback_data="change_buy_amount")])
+
         await message.answer(
             f"✅ <b>Проверьте детали:</b>\n\n"
             f"💰 Сумма: {amount_rub:.2f}₽\n"
             f"💎 Получите: {coins_amount:.0f} BC\n"
             f"📈 Курс: 1000 BC = {config.RATE_SELL * 1000:.2f}₽\n\n"
-            f"Всё верно?",
+            f"Выберите способ оплаты:",
             parse_mode="HTML",
-            reply_markup=InlineKeyboardMarkup(
-                inline_keyboard=[
-                    [
-                        InlineKeyboardButton(text="✅ Продолжить", callback_data="continue_buy"),
-                        InlineKeyboardButton(text="🔄 Изменить сумму", callback_data="change_buy_amount")
-                    ]
-                ]
-            )
+            reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons)
         )
         await state.set_state(BuyStates.waiting_confirm)
 
@@ -1419,6 +1410,17 @@ async def add_new_payment(callback: CallbackQuery, state: FSMContext):
     )
     await state.set_state(SellStates.waiting_payment_method)
 
+@router.callback_query(F.data == "pay_stars_after_amount")
+async def pay_stars_after_amount(callback: CallbackQuery, state: FSMContext):
+    await callback.message.answer(
+        "⭐ <b>Оплата звёздами</b>\n\n"
+        f"Курс: <code>1 звезда = {config.STAR_PRICE_BUY}₽</code>\n"
+        f"<i>Минимум: {config.STAR_MIN_AMOUNT} звёзд</i>\n\n"
+        f"Введите количество звёзд:",
+        parse_mode="HTML"
+    )
+    await state.set_state(BuyStates.waiting_stars_amount)
+    await callback.answer()
 
 @router.callback_query(BuyStates.waiting_confirm, F.data == "pay_usdt")
 async def pay_with_usdt(callback: CallbackQuery, state: FSMContext):
@@ -1431,6 +1433,16 @@ async def pay_with_usdt(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     amount_rub = data.get("amount_rub")
     coins_amount = data.get("coins_amount")
+
+    # Если суммы нет — просим ввести
+    if amount_rub is None:
+        await callback.message.answer(
+            "💵 Введите сумму в рублях:"
+        )
+        await state.set_state(BuyStates.waiting_amount)
+        await state.update_data(payment_method="usdt")
+        await callback.answer()
+        return
 
     usdt_amount = amount_rub / config.USDT_RATE
 
