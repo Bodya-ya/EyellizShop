@@ -4,7 +4,7 @@ from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery,InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.filters import Command
 from decimal import Decimal
-
+import html
 from bot_instance import bot
 from config import config
 from bytecoin_api import bytecoin_api
@@ -570,9 +570,8 @@ async def admin_active_deals(message: Message):
             )
 
             user = await session.get(User, deal.user_id)  # ← Вот!
-            username = f"@{user.username}" if user and user.username else "Нет тега"
-            first_name = user.first_name if user and user.first_name else "Пользователь"
-
+            first_name = html.escape(user.first_name) if user and user.first_name else "Пользователь"
+            username = f"@{html.escape(user.username)}" if user and user.username else "Нет тега"
             await message.answer(
                 f"📋 <b>Сделка {deal.deal_number}</b>\n\n"
                 f"👤 Чел: <code>{first_name} aka. {username}\n</code>\n"
@@ -607,8 +606,8 @@ async def approve_sell_deal(callback: CallbackQuery):
 
         # Получаем данные пользователя
         user = await session.get(User, deal.user_id)
-        username = f"@{user.username}" if user and user.username else "нет тега"
-        first_name = user.first_name if user and user.first_name else "Пользователь"
+        first_name = html.escape(user.first_name) if user and user.first_name else "Пользователь"
+        username = f"@{html.escape(user.username)}" if user and user.username else "Нет тега"
 
         # Резерв уменьшается
         rub_balance = Decimal(await get_setting("rub_balance", "0"))
@@ -820,8 +819,8 @@ async def approve_buy_deal(callback: CallbackQuery):
                 # ==========================
 
                 user = await session.get(User, deal.user_id)
-                first_name = user.first_name if user else "Пользователь"
-                username = user.username if user else "нет"
+                first_name = html.escape(user.first_name) if user and user.first_name else "Пользователь"
+                username = f"@{html.escape(user.username)}" if user and user.username else "Нет тега"
 
                 await callback.message.edit_text(
                     f"✅ Сделка {deal.deal_number} подтверждена!\n"

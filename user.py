@@ -1455,8 +1455,8 @@ async def confirm_buy_payment(callback: CallbackQuery, state: FSMContext):
 
         # Получаем пользователя
         user = await session.get(User, callback.from_user.id)
-        username = f"@{user.username}" if user and user.username else "Нет тега"
-        first_name = user.first_name if user and user.first_name else "Пользователь"
+        username = f"@{html.escape(user.username)}" if user and user.username else "Нет тега"
+        first_name = html.escape(user.first_name) if user and user.first_name else "Пользователь"
 
         notification_messages = {}
 
