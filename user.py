@@ -307,7 +307,7 @@ async def cmd_start(message: Message, state: FSMContext):
     await message.answer(
         f'<tg-emoji emoji-id="5902335789798265487">👤</tg-emoji> <b>Добро пожаловать в Eyelliz Shop!</b>\n\n'
         f'<tg-emoji emoji-id="5197572355634781614">💎</tg-emoji> Здесь вы можете купить или продать BC\n\n'
-        f'<tg-emoji emoji-id="5215538285438311443">✅</tg-emoji> <b>Наши курсы:</b>\n'
+        f'<tg-emoji emoji-id="5215538285438311443">✅</tg-emoji> <b>Наши курсы:</b>\n\n'
         f'<tg-emoji emoji-id="5429651785352501917">📈</tg-emoji> <b>Купить:</b> <code>{format_rate(config.RATE_SELL)}₽ / 1000 BC</code>\n'
         f'<tg-emoji emoji-id="5429518319243775957">📉</tg-emoji> <b>Продать:</b> <code>{format_rate(config.RATE_BUY)}₽ / 1000 BC</code>\n\n'
         f"Выберите действие:",
@@ -329,7 +329,6 @@ async def buy_bytecoin(message: Message, state: FSMContext):
         )
         return
 
-    # Максимальная сумма в рублях (из лимита и баланса BC)
     max_rub_from_coins = available * config.RATE_SELL
     max_rub = min(max_rub_from_coins, config.MAX_DEAL_RUB)
 
@@ -354,6 +353,7 @@ async def buy_bytecoin(message: Message, state: FSMContext):
         parse_mode="HTML",
         reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons)
     )
+    await state.set_state(BuyStates.waiting_amount)  # ← ВОТ ЭТУ СТРОКУ ДОБАВЬ
 
 
 @router.callback_query(BuyStates.waiting_amount, F.data.startswith("quick_buy:"))
