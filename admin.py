@@ -556,12 +556,14 @@ async def admin_active_deals(message: Message):
                 inline_keyboard=[
                     [
                         InlineKeyboardButton(
-                            text="✅ Подтвердить",
-                            callback_data=f"approve_buy:{deal.id}"
+                            text="Подтвердить",
+                            callback_data=f"approve_buy:{deal.id}",
+                            icon_custom_emoji_id="5215538285438311443"
                         ),
                         InlineKeyboardButton(
-                            text="❌ Отклонить",
-                            callback_data=f"reject_buy:{deal.id}"
+                            text="Отклонить",
+                            callback_data=f"reject_buy:{deal.id}",
+                            icon_custom_emoji_id="5280803324273115630"
                         )
                     ]
                 ]
@@ -941,10 +943,11 @@ async def reject_buy_deal(callback: CallbackQuery):
 
         await bot.send_message(
             deal.user_id,
-            f"❌ Оплата не подтверждена\n\n"
-            f"📋 Сделка: {deal.deal_number}\n"
-            f"Обратитесь в поддержку.\n\n"
-            "Support : @EyellizSUP"
+            f'<tg-emoji emoji-id="5280803324273115630">❌</tg-emoji> Оплата не подтверждена\n\n'
+            f'<tg-emoji emoji-id="5440457429147997980">📋</tg-emoji> Сделка: {deal.deal_number}\n'
+            "Обратитесь в поддержку.\n\n"
+            "Support : @EyellizSUP",
+            parse_mode="HTML"
         )
 
         await callback.answer("Сделка отклонена")

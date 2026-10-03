@@ -129,8 +129,8 @@ async def bytecoin_webhook(request: Request):
                 if rub_amount < config.MIN_SELL_RUB:
                     await bot.send_message(
                         user_id,
-                        f"❌ <b>Минимальная сумма продажи: {config.MIN_SELL_RUB}₽</b>\n\n"
-                        f"Вы отправили: {format_decimal(rub_amount)}₽\n\n"
+                        f'<tg-emoji emoji-id="5280803324273115630">❌</tg-emoji> <b>Минимальная сумма продажи: {config.MIN_SELL_RUB}₽</b>\n\n'
+                        f'<tg-emoji emoji-id="5215538285438311443">✅</tg-emoji> Вы отправили: {format_decimal(rub_amount)}₽\n\n'
                         f"Обратитесь в поддержку: @EyellizSUP",
                         parse_mode="HTML"
                     )
@@ -138,11 +138,12 @@ async def bytecoin_webhook(request: Request):
                         try:
                             await bot.send_message(
                                 admin_id,
-                                f"⚠️ Пользователь {first_name} {username}\n"
+                                f'<tg-emoji emoji-id="5220144015093015075">⚠️</tg-emoji> Пользователь {first_name} {username}\n'
                                 f"Отправил меньше минимума!\n"
-                                f"💎 BC: {sum_coins:.0f}\n"
-                                f"💰 Сумма: {rub_amount:.2f}₽\n"
-                                f"Минимум: {config.MIN_SELL_RUB}₽"
+                                f'<tg-emoji emoji-id="5197572355634781614">💎</tg-emoji> BC: {sum_coins:.0f}\n'
+                                f'<tg-emoji emoji-id="5215538285438311443">✅</tg-emoji> Сумма: {rub_amount:.2f}₽\n'
+                                f'<tg-emoji emoji-id="5215538285438311443">✅</tg-emoji> Минимум: {config.MIN_SELL_RUB}₽',
+                                parse_mode="HTML"
                             )
                         except:
                             pass
@@ -181,12 +182,14 @@ async def bytecoin_webhook(request: Request):
                     inline_keyboard=[
                         [
                             InlineKeyboardButton(
-                                text="✅ Подтвердить выплату",
-                                callback_data=f"approve_sell:{deal.id}"
+                                text="Подтвердить выплату",
+                                callback_data=f"approve_sell:{deal.id}",
+                                icon_custom_emoji_id="5215538285438311443"
                             ),
                             InlineKeyboardButton(
-                                text="❌ Отклонить",
-                                callback_data=f"reject_sell:{deal.id}"
+                                text="Отклонить",
+                                callback_data=f"reject_sell:{deal.id}",
+                                icon_custom_emoji_id="5280803324273115630"
                             )
                         ]
                     ]
@@ -197,13 +200,14 @@ async def bytecoin_webhook(request: Request):
                     try:
                         msg = await bot.send_message(
                             admin_id,
-                            f"🔔 Новая продажа BC!\n\n"
-                            f"📋 Сделка: {deal_number}\n"
-                            f"👤 Пользователь: {first_name} {username}\n"
-                            f"💎 BC: {sum_coins:.0f}\n"
-                            f"💰 К оплате: {rub_amount:.2f}₽\n\n"
+                            f'<tg-emoji emoji-id="5258342814273513092">🔔</tg-emoji> Новая продажа BC!\n\n'
+                            f'<tg-emoji emoji-id="5440457429147997980">📋</tg-emoji> Сделка: {deal_number}\n'
+                            f'<tg-emoji emoji-id="5902335789798265487">👤</tg-emoji> Пользователь: {first_name} {username}\n'
+                            f'<tg-emoji emoji-id="5197572355634781614">💎</tg-emoji> BC: {sum_coins:.0f}\n'
+                            f'<tg-emoji emoji-id="5215538285438311443">✅</tg-emoji> К оплате: {rub_amount:.2f}₽\n\n'
                             f"Реквизиты:\n{payment_info}\n\n"
                             f"Подтвердите выплату:",
+                            parse_mode="HTML",
                             reply_markup=admin_kb
                         )
                         notification_messages[admin_id] = msg.message_id
@@ -218,11 +222,12 @@ async def bytecoin_webhook(request: Request):
 
                 await bot.send_message(
                     user_id,
-                    f"✅ Перевод получен!\n\n"
-                    f"📋 Сделка: {deal_number}\n"
-                    f"💎 BC: {sum_coins:.0f}\n"
-                    f"💰 Вы получите: {rub_amount:.2f}₽\n\n"
-                    "Ожидайте выплату..."
+                    f'<tg-emoji emoji-id="5215538285438311443">✅</tg-emoji> Перевод получен!\n\n'
+                    f'<tg-emoji emoji-id="5440457429147997980">📋</tg-emoji> Сделка: {deal_number}\n'
+                    f'<tg-emoji emoji-id="5197572355634781614">💎</tg-emoji> BC: {sum_coins:.0f}\n'
+                    f'<tg-emoji emoji-id="5215538285438311443">✅</tg-emoji> Вы получите: {rub_amount:.2f}₽\n\n'
+                    "Ожидайте выплату...",
+                    parse_mode="HTML"
                 )
 
             else:
