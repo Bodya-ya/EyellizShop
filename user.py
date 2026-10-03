@@ -509,6 +509,60 @@ async def sell_choose_link(callback: CallbackQuery, state: FSMContext):
     )
     await state.set_state(SellStates.waiting_transfer)
 
+
+@router.message(F.text == "Топ покупателей")
+async def top_buyers(message: Message):
+    async with async_session() as session:
+        hidden = await session.execute(select(HiddenUser.user_id))
+        hidden_ids = [h for h in hidden.scalars().all()]
+
+        result = await session.execute(
+            select(User).where(
+                User.total_bought_week > 0,
+                User.telegram_id.notin_(hidden_ids),
+                User.telegram_id.notin_(config.ADMIN_IDS)
+            ).order_by(User.total_bought_week.desc()).limit(10)
+        )
+        users = result.scalars().all()
+
+        if not users:
+            await message.answer(
+                f'<tg-emoji emoji-id="5409008750893734809">🏆</tg-emoji> Пока нет покупателей за неделю',
+                parse_mode="HTML"
+            )
+            return
+
+        text = f'<tg-emoji emoji-id="5409008750893734809">🏆</tg-emoji> <b>ТОП ПОКУПАТЕЛЕЙ</b>\n'
+        text += f'<i>за текущую неделю</i>\n\n'
+
+        for i, user in enumerate(users, 1):
+            if i == 1:
+                medal = '<tg-emoji emoji-id="5280735858926822987">🥇</tg-emoji>'
+            elif i == 2:
+                medal = '<tg-emoji emoji-id="5283195573812340110">🥈</tg-emoji>'
+            elif i == 3:
+                medal = '<tg-emoji emoji-id="5282750778409233531">🥉</tg-emoji>'
+            else:
+                medal = f'<b>{i}.</b>'
+
+            name = html.escape(user.first_name or "Пользователь")
+            bought = format_decimal(user.total_bought_week)
+
+            text += f'{medal} {name}\n'
+            text += f'   <tg-emoji emoji-id="5197572355634781614">💎</tg-emoji> <b>{bought} BC</b>\n'
+            text += '\n'
+
+        text += '━━━━━━━━━━━━━━━━━━\n\n'
+
+        prize = await get_setting("top_prize", "")
+        if prize:
+            text += f'<tg-emoji emoji-id="5193085063998224234">🎁</tg-emoji> <b>Приз:</b>\n'
+            text += f'<i>{prize}</i>\n\n'
+
+        text += '<i>Обновляется каждую неделю</i>'
+
+        await message.answer(text, parse_mode="HTML")
+
 @router.callback_query(F.data == "change_payment")
 async def change_payment(callback: CallbackQuery, state: FSMContext):
     """Изменение реквизитов — просто меняем, без продажи"""
@@ -1132,23 +1186,6 @@ async def cancel_deal(callback: CallbackQuery):
             await callback.answer("Нет активных сделок", show_alert=True)
 
 
-@router.message(F.text == "Топ покупателей")
-async def top_buyers(message: Message):
-    kb = InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(text="📅 За неделю", callback_data="top_week"),
-                InlineKeyboardButton(text="🌍 За всё время", callback_data="top_all")
-            ]
-        ]
-    )
-    await message.answer(
-        f'<tg-emoji emoji-id="5409008750893734809">🏆</tg-emoji> Выберите период:',
-        parse_mode="HTML",
-        reply_markup=kb
-    )
-
-
 @router.callback_query(F.data == "top_week")
 async def top_week(callback: CallbackQuery):
     async with async_session() as session:
@@ -1158,8 +1195,9 @@ async def top_week(callback: CallbackQuery):
         result = await session.execute(
             select(User).where(
                 User.total_bought_week > 0,
-                User.telegram_id.notin_(hidden_ids)
-            ).order_by(User.total_bought_week.desc()).limit(8)
+                User.telegram_id.notin_(hidden_ids),
+                User.telegram_id.notin_(config.ADMIN_IDS)
+            ).order_by(User.total_bought_week.desc()).limit(10)
         )
         users = result.scalars().all()
 
@@ -1167,7 +1205,9 @@ async def top_week(callback: CallbackQuery):
             await callback.answer("Пока нет покупателей за неделю", show_alert=True)
             return
 
-        text = f'<tg-emoji emoji-id="5409008750893734809">🏆</tg-emoji> Топ за неделю\n\n'
+        text = f'<tg-emoji emoji-id="5409008750893734809">🏆</tg-emoji> <b>ТОП ПОКУПАТЕЛЕЙ</b>\n'
+        text += f'<i>за текущую неделю</i>\n\n'
+
         for i, user in enumerate(users, 1):
             if i == 1:
                 medal = '<tg-emoji emoji-id="5280735858926822987">🥇</tg-emoji>'
@@ -1176,55 +1216,27 @@ async def top_week(callback: CallbackQuery):
             elif i == 3:
                 medal = '<tg-emoji emoji-id="5282750778409233531">🥉</tg-emoji>'
             else:
-                medal = f"{i}."
+                medal = f'<b>{i}.</b>'
+
             name = html.escape(user.first_name or "Пользователь")
-            text += f"{medal} {name}: {format_decimal(user.total_bought_week)} BC\n"
+            bought = format_decimal(user.total_bought_week)
+
+            text += f'{medal} {name}\n'
+            text += f'   <tg-emoji emoji-id="5197572355634781614">💎</tg-emoji> <b>{bought} BC</b>\n'
+            text += '\n'
+
+        text += '━━━━━━━━━━━━━━━━━━\n\n'
 
         prize = await get_setting("top_prize", "")
         if prize:
-            text += f'\n<tg-emoji emoji-id="5193085063998224234">🎁</tg-emoji> Приз: {prize}\n'
+            text += f'<tg-emoji emoji-id="5193085063998224234">🎁</tg-emoji> <b>Приз:</b>\n'
+            text += f'<i>{prize}</i>\n\n'
+
+        text += '<i>Обновляется каждую неделю</i>'
 
         await callback.message.edit_text(text, parse_mode="HTML")
         await callback.answer()
 
-
-@router.callback_query(F.data == "top_all")
-async def top_all(callback: CallbackQuery):
-    async with async_session() as session:
-        hidden = await session.execute(select(HiddenUser.user_id))
-        hidden_ids = [h for h in hidden.scalars().all()]
-
-        result = await session.execute(
-            select(User).where(
-                User.total_bought_coins > 0,
-                User.telegram_id.notin_(hidden_ids)
-            ).order_by(User.total_bought_coins.desc()).limit(8)
-        )
-        users = result.scalars().all()
-
-        if not users:
-            await callback.answer("Пока нет покупателей", show_alert=True)
-            return
-
-        text = f'<tg-emoji emoji-id="5409008750893734809">🏆</tg-emoji> Топ за всё время\n\n'
-        for i, user in enumerate(users, 1):
-            if i == 1:
-                medal = '<tg-emoji emoji-id="5280735858926822987">🥇</tg-emoji>'
-            elif i == 2:
-                medal = '<tg-emoji emoji-id="5283195573812340110">🥈</tg-emoji>'
-            elif i == 3:
-                medal = '<tg-emoji emoji-id="5282750778409233531">🥉</tg-emoji>'
-            else:
-                medal = f"{i}."
-            name = html.escape(user.first_name or "Пользователь")
-            text += f"{medal} {name}: {format_decimal(user.total_bought_coins)} BC\n"
-
-        prize = await get_setting("top_prize", "")
-        if prize:
-            text += f'\n<tg-emoji emoji-id="5193085063998224234">🎁</tg-emoji> Приз: {prize}\n'
-
-        await callback.message.edit_text(text, parse_mode="HTML")
-        await callback.answer()
 
 @router.message(F.text == "Мой профиль")
 async def my_profile(message: Message):
