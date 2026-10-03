@@ -347,13 +347,12 @@ async def buy_bytecoin(message: Message, state: FSMContext):
 
     await message.answer(
         f'<tg-emoji emoji-id="5197572355634781614">💎</tg-emoji> <b>Покупка BC</b>\n\n'
-        f'<tg-emoji emoji-id="5429651785352501917">💎</tg-emoji> Курс: <code>1000 BC = {config.RATE_SELL * 1000:.2f}₽</code>\n\n'
-        f'<tg-emoji emoji-id="5278467510604160626">💎</tg-emoji> Доступно: {format_num(available)} BC\n\n'
-        f'<tg-emoji emoji-id="5427107837568360763">💎</tg-emoji> Введите сумму в рублях <i>(макс. {format_num(int(max_rub))}₽)</i>:',
+        f'<tg-emoji emoji-id="5429651785352501917">📈</tg-emoji> Курс: <code>1000 BC = {config.RATE_SELL * 1000:.2f}₽</code>\n\n'
+        f'<tg-emoji emoji-id="5278467510604160626">📦</tg-emoji> Доступно: {format_num(available)} BC\n\n'
+        f'<tg-emoji emoji-id="5427107837568360763">💵</tg-emoji> Введите сумму в рублях <i>(макс. {format_num(int(max_rub))}₽)</i>:',
         parse_mode="HTML",
         reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons)
     )
-    await state.set_state(BuyStates.waiting_amount)
 
 
 @router.callback_query(BuyStates.waiting_amount, F.data.startswith("quick_buy:"))
@@ -402,10 +401,10 @@ async def quick_buy(callback: CallbackQuery, state: FSMContext):
     buttons.append([InlineKeyboardButton(text="🔄 Изменить сумму", callback_data="change_buy_amount")])
 
     await callback.message.answer(
-        f'<tg-emoji emoji-id="5215538285438311443">💎</tg-emoji> <b>Проверьте детали:</b>\n\n'
-        f"💰 Сумма: {amount_rub:.2f}₽\n"
-        f"💎 Получите: {coins_amount:.0f} BC\n"
-        f"📈 Курс: 1000 BC = {config.RATE_SELL * 1000:.2f}₽\n\n"
+        f'<tg-emoji emoji-id="5215538285438311443">✅</tg-emoji> <b>Проверьте детали:</b>\n\n'
+        f'<tg-emoji emoji-id="5215538285438311443">✅</tg-emoji> Сумма: {amount_rub:.2f}₽\n'
+        f'<tg-emoji emoji-id="5197572355634781614">💎</tg-emoji> Получите: {coins_amount:.0f} BC\n'
+        f'<tg-emoji emoji-id="5429651785352501917">📈</tg-emoji> Курс: 1000 BC = {config.RATE_SELL * 1000:.2f}₽\n\n'
         f"Выберите способ оплаты:",
         parse_mode="HTML",
         reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons)
@@ -438,14 +437,12 @@ async def show_rates_and_limits(message: Message):
         return f"{rate * 1000:.2f}".rstrip("0").rstrip(".")
 
     text = (
-        "📊 <b>Информация</b>\n\n"
-        f"📈 <b>Купить BC:</b> <code>{format_rate(config.RATE_SELL)}₽ / 1000 BC</code>\n"
-        f"📉 <b>Продать BC:</b> <code>{format_rate(config.RATE_BUY)}₽ / 1000 BC</code>\n\n"
-        f"⭐ <b>Звёзды при покупке:</b> <code>1 звезда = {config.STAR_PRICE_BUY}₽</code>\n"
-        f"<i>Минимум: {config.STAR_MIN_AMOUNT} звёзд</i>\n\n"
-        f"📦 <b>Продадим:</b> <code>{format_num(available_to_sell_coins)} BC</code>\n"
-        f"💸 <b>Выкупим:</b> <code>{format_num(available_to_buy_coins)} BC</code>\n"
-        f"💰 <b>Резерв:</b> <code>{format_num(available_to_buy_rub)}₽</code>"
+        f'<tg-emoji emoji-id="5260742580005530450">📊</tg-emoji> <b>Информация</b>\n\n'
+        f'<tg-emoji emoji-id="5429651785352501917">📈</tg-emoji> <b>Купить BC:</b> <code>{format_rate(config.RATE_SELL)}₽ / 1000 BC</code>\n'
+        f'<tg-emoji emoji-id="5429518319243775957">📉</tg-emoji> <b>Продать BC:</b> <code>{format_rate(config.RATE_BUY)}₽ / 1000 BC</code>\n\n'
+        f'<tg-emoji emoji-id="5278467510604160626">📦</tg-emoji> <b>Продадим:</b> <code>{format_num(available_to_sell_coins)} BC</code>\n'
+        f'<tg-emoji emoji-id="5440457429147997980">💸</tg-emoji> <b>Выкупим:</b> <code>{format_num(available_to_buy_coins)} BC</code>\n'
+        f'<tg-emoji emoji-id="5215538285438311443">✅</tg-emoji> <b>Резерв:</b> <code>{format_num(available_to_buy_rub)}₽</code>'
     )
 
     await message.answer(text, parse_mode="HTML")
@@ -460,9 +457,10 @@ async def sell_choose_amount(callback: CallbackQuery, state: FSMContext):
 @router.callback_query(F.data == "sell_link")
 async def sell_choose_link(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_text(
-        f"Переведите BC через ссылку:\n"
+        f'<tg-emoji emoji-id="5463424023734014980">🔗</tg-emoji> Переведите BC через ссылку:\n'
         f"https://t.me/byteappbot/app?startapp=transfer-dffc2867ec8c2a106e4e87da\n\n"
-        f"После перевода нажмите 'tg-emoji emoji-id={5215538285438311443}>💎</tg-emoji> Я перевёл'",
+        f"После перевода нажмите:",
+        parse_mode="HTML",
         reply_markup=InlineKeyboardMarkup(
             inline_keyboard=[
                 [
@@ -471,7 +469,11 @@ async def sell_choose_link(callback: CallbackQuery, state: FSMContext):
                         callback_data="confirm_sell",
                         icon_custom_emoji_id="5215538285438311443"
                     ),
-                    InlineKeyboardButton(text="❌ Отмена", callback_data="cancel_sell")
+                    InlineKeyboardButton(
+                        text="Отмена",
+                        callback_data="cancel_sell",
+                        icon_custom_emoji_id="5280803324273115630"
+                    )
                 ]
             ]
         )
@@ -550,10 +552,10 @@ async def process_buy_amount(message: Message, state: FSMContext):
         buttons.append([InlineKeyboardButton(text="🔄 Изменить сумму", callback_data="change_buy_amount")])
 
         await message.answer(
-            f'<tg-emoji emoji-id="{5215538285438311443}">💎</tg-emoji> <b>Проверьте детали:</b>\n\n'
-            f"💰 Сумма: {amount_rub:.2f}₽\n"
-            f"💎 Получите: {coins_amount:.0f} BC\n"
-            f"📈 Курс: 1000 BC = {config.RATE_SELL * 1000:.2f}₽\n\n"
+            f'<tg-emoji emoji-id="5215538285438311443">✅</tg-emoji> <b>Проверьте детали:</b>\n\n'
+            f'<tg-emoji emoji-id="5215538285438311443">✅</tg-emoji> Сумма: {amount_rub:.2f}₽\n'
+            f'<tg-emoji emoji-id="5197572355634781614">💎</tg-emoji> Получите: {coins_amount:.0f} BC\n'
+            f'<tg-emoji emoji-id="5429651785352501917">📈</tg-emoji> Курс: 1000 BC = {config.RATE_SELL * 1000:.2f}₽\n\n'
             f"Выберите способ оплаты:",
             parse_mode="HTML",
             reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons)
@@ -568,7 +570,10 @@ async def process_buy_amount(message: Message, state: FSMContext):
 @router.callback_query(F.data == "cancel_sell")
 async def cancel_sell_transfer(callback: CallbackQuery, state: FSMContext):
     await state.clear()
-    await callback.message.edit_text("❌ Продажа отменена")
+    await callback.message.edit_text(
+        f'<tg-emoji emoji-id="5280803324273115630">❌</tg-emoji> Сделка отменена',
+        parse_mode="HTML"
+    )
 
 
 @router.callback_query(BuyStates.waiting_confirm, F.data == "continue_buy")
@@ -599,12 +604,12 @@ async def continue_buy(callback: CallbackQuery, state: FSMContext):
     requisites = await get_setting("payment_requisites", "+7 958 238-99-88 (СБЕРБАНК)")
 
     await callback.message.answer(
-        f"💳 <b>Оплата по СБП</b>\n\n"
-        f"💰 Сумма: {amount_rub:.2f}₽\n"
-        f"💎 Получите: {coins_amount:.0f} BC\n"
-        f"📋 Сделка: {deal_number}\n\n"
+        f'<tg-emoji emoji-id="5265074015868822600">📱</tg-emoji> <b>Оплата по СБП</b>\n\n'
+        f'<tg-emoji emoji-id="5215538285438311443">✅</tg-emoji> Сумма: {amount_rub:.2f}₽\n'
+        f'<tg-emoji emoji-id="5197572355634781614">💎</tg-emoji> Получите: {coins_amount:.0f} BC\n'
+        f'<tg-emoji emoji-id="5440457429147997980">📋</tg-emoji> Сделка: {deal_number}\n\n'
         f"‼️<code>{requisites}</code>‼️\n\n"
-        f"⏰ Перевести в течении часа!\n\n"
+        f'<tg-emoji emoji-id="5215277915930896212">⏳</tg-emoji> Перевести в течении часа!\n\n'
         f"После оплаты нажмите:",
         parse_mode="HTML",
         reply_markup=InlineKeyboardMarkup(
@@ -714,10 +719,10 @@ async def process_stars_amount(message: Message, state: FSMContext):
         )
 
         await message.answer(
-            f'<tg-emoji emoji-id="5215538285438311443">💎</tg-emoji> <b>Проверьте:</b>\n\n'
-            f"⭐ Звёзд: {stars_amount}\n"
-            f"💰 Эквивалент: {rub_amount:.2f}₽\n"
-            f"💎 Получите: {coins_amount:.0f} BC\n\n"
+            f'<tg-emoji emoji-id="5215538285438311443">✅</tg-emoji> <b>Проверьте:</b>\n\n'
+            f'<tg-emoji emoji-id="5952066863931331270">⭐</tg-emoji> Звёзд: {stars_amount}\n'
+            f'<tg-emoji emoji-id="5215538285438311443">✅</tg-emoji> Эквивалент: {rub_amount:.2f}₽\n'
+            f'<tg-emoji emoji-id="5197572355634781614">💎</tg-emoji> Получите: {coins_amount:.0f} BC\n\n'
             f"Нажмите кнопку для оплаты:",
             parse_mode="HTML",
             reply_markup=InlineKeyboardMarkup(
@@ -800,10 +805,10 @@ async def sell_bytecoin(message: Message, state: FSMContext):
 
     await message.answer(
         f'<tg-emoji emoji-id="5197572355634781614">💎</tg-emoji> Продажа BC\n\n'
-        f'<tg-emoji emoji-id="5429518319243775957">💎</tg-emoji> Курс: <code>1000 BC = {config.RATE_BUY * 1000:.2f}₽</code>\n\n'
-        f'<tg-emoji emoji-id="5278467510604160626">💎</tg-emoji> Ваш баланс: {format_num(user_balance)} BC\n\n'
-        f'<tg-emoji emoji-id="5427107837568360763">💎</tg-emoji> Мы можем выкупить до: <code>{format_num(available_coins)}</code> BC\n'
-        f'<tg-emoji emoji-id="5224257782013769471">💎</tg-emoji> Минимум: <code>{config.MIN_SELL_RUB}₽</code> | Максимум: <code>{config.MAX_DEAL_RUB}₽</code>\n\n'
+        f'<tg-emoji emoji-id="5429518319243775957">📉</tg-emoji> Курс: <code>1000 BC = {config.RATE_BUY * 1000:.2f}₽</code>\n\n'
+        f'<tg-emoji emoji-id="5278467510604160626">📦</tg-emoji> Ваш баланс: {format_num(user_balance)} BC\n\n'
+        f'<tg-emoji emoji-id="5215538285438311443">✅</tg-emoji> Мы можем выкупить до: <code>{format_num(available_coins)}</code> BC\n'
+        f'<tg-emoji emoji-id="5215538285438311443">✅</tg-emoji> Минимум: <code>{config.MIN_SELL_RUB}₽</code> | Максимум: <code>{config.MAX_DEAL_RUB}₽</code>\n\n'
         f"Выберите реквизиты для выплаты:",
         parse_mode="HTML",
         reply_markup=saved_payments_kb(methods) if methods else payment_method_sell_kb()
@@ -855,21 +860,22 @@ async def process_successful_payment(message: Message, state: FSMContext):
     if result.get("status") == "ok":
         await bot.send_message(
             config.ADMIN_ID,
-            f"⭐ <b>Оплата звёздами!</b>\n\n"
-            f"📋 Сделка: {deal_number}\n"
-            f"👤 User: <code>{message.from_user.id}</code>\n"
-            f"⭐ Звёзд: {stars_amount:.0f}\n"
-            f"💰 Рублей: {rub_amount:.2f}₽\n"
-            f"💎 BC начислено: {coins_amount:.0f}\n"
-            f'<tg-emoji emoji-id="5215538285438311443">💎</tg-emoji> Статус: Завершена',
+            f'<tg-emoji emoji-id="5952066863931331270">⭐</tg-emoji> <b>Оплата звёздами!</b>\n\n'
+            f'<tg-emoji emoji-id="5440457429147997980">📋</tg-emoji> Сделка: {deal_number}\n'
+            f'<tg-emoji emoji-id="5902335789798265487">👤</tg-emoji> User: <code>{message.from_user.id}</code>\n'
+            f'<tg-emoji emoji-id="5952066863931331270">⭐</tg-emoji> Звёзд: {stars_amount:.0f}\n'
+            f'<tg-emoji emoji-id="5215538285438311443">✅</tg-emoji> Рублей: {rub_amount:.2f}₽\n'
+            f'<tg-emoji emoji-id="5197572355634781614">💎</tg-emoji> BC начислено: {coins_amount:.0f}\n'
+            f'<tg-emoji emoji-id="5215538285438311443">✅</tg-emoji> Статус: Завершена',
             parse_mode="HTML"
         )
 
         await message.answer(
-            f'<tg-emoji emoji-id="5215538285438311443">💎</tg-emoji> Оплата звёздами успешна!\n\n'
-            f"📋 Сделка: {deal_number}\n"
-            f"⭐ Потрачено: {stars_amount:.0f} звёзд\n"
-            f"💎 Вы получили: {coins_amount:.0f} BC"
+            f'<tg-emoji emoji-id="5215538285438311443">✅</tg-emoji> Оплата звёздами успешна!\n\n'
+            f'<tg-emoji emoji-id="5440457429147997980">📋</tg-emoji> Сделка: {deal_number}\n'
+            f'<tg-emoji emoji-id="5952066863931331270">⭐</tg-emoji> Потрачено: {stars_amount:.0f} звёзд\n'
+            f'<tg-emoji emoji-id="5197572355634781614">💎</tg-emoji> Вы получили: {coins_amount:.0f} BC',
+            parse_mode="HTML"
         )
     else:
         await message.answer(f"❌ Ошибка: {result.get('error', 'Unknown')}")
@@ -906,20 +912,26 @@ async def use_saved_payment(callback: CallbackQuery, state: FSMContext):
 
             # НЕ создаём сделку! Просто показываем инструкцию
             await callback.message.answer(
-                f'<tg-emoji emoji-id="5215538285438311443">💎</tg-emoji> Выбрано: {payment_info}\n\n'
+                f'<tg-emoji emoji-id="5215538285438311443">✅</tg-emoji> Выбрано: {payment_info}\n\n'
                 f"Переведите BC любым для вас удобным методом:\n\n"
-                f"🔢 Указать количество — если хотите узнать сумму выплаты в рублях.\n\n"
-                f"🔗 По ссылке — переведите любую сумму, мы автоматически посчитаем выплату.\n\n"
-                f"После перевода нажмите 'Я перевёл'",
+                f'<tg-emoji emoji-id="5258334778389710253">🔢</tg-emoji> Указать количество — если хотите узнать сумму выплаты в рублях.\n\n'
+                f'<tg-emoji emoji-id="5463424023734014980">🔗</tg-emoji> По ссылке — переведите любую сумму, мы автоматически посчитаем выплату.\n\n'
+                f"После перевода нажмите:",
+                parse_mode="HTML",
                 reply_markup=InlineKeyboardMarkup(
                     inline_keyboard=[
                         [
-                            InlineKeyboardButton(text="🔢 Указать количество", callback_data="sell_specific_amount")
+                            InlineKeyboardButton(
+                                text="Указать количество",
+                                callback_data="sell_specific_amount",
+                                icon_custom_emoji_id="5258334778389710253"
+                            )
                         ],
                         [
                             InlineKeyboardButton(
-                                text="🔗 Перевести по ссылке",
-                                url="https://t.me/byteappbot/app?startapp=transfer-dffc2867ec8c2a106e4e87da"
+                                text="Перевести по ссылке",
+                                url="https://t.me/byteappbot/app?startapp=transfer-dffc2867ec8c2a106e4e87da",
+                                icon_custom_emoji_id="5463424023734014980"
                             )
                         ],
                         [
@@ -1008,18 +1020,20 @@ async def process_sell_amount(message: Message, state: FSMContext):
 
         # НЕ СОЗДАЁМ СДЕЛКУ! Просто показываем инструкцию
         await message.answer(
-            f"📤 Перевод BC\n\n"
-            f"💎 Количество: {format_num(coins_amount)} BC\n"
-            f"💰 Вы получите: {rub_amount:.2f}₽\n\n"
+            f'<tg-emoji emoji-id="5445355530111437729">📤</tg-emoji> Перевод BC\n\n'
+            f'<tg-emoji emoji-id="5197572355634781614">💎</tg-emoji> Количество: {format_num(coins_amount)} BC\n'
+            f'<tg-emoji emoji-id="5215538285438311443">✅</tg-emoji> Вы получите: {rub_amount:.2f}₽\n\n'
             f"🟠 Переведите BC по ссылке:\n"
             f"https://t.me/byteappbot/app?startapp=transfer-dffc2867ec8c2a106e4e87da\n\n"
-            f"После перевода нажмите 'tg-emoji emoji-id={5215538285438311443}>💎</tg-emoji> Я перевёл'",
+            f"После перевода нажмите:",
+            parse_mode="HTML",
             reply_markup=InlineKeyboardMarkup(
                 inline_keyboard=[
                     [
                         InlineKeyboardButton(
-                            text="🔗 Перевести BC",
-                            url="https://t.me/byteappbot/app?startapp=transfer-dffc2867ec8c2a106e4e87da"
+                            text="Перевести BC",
+                            url="https://t.me/byteappbot/app?startapp=transfer-dffc2867ec8c2a106e4e87da",
+                            icon_custom_emoji_id="5463424023734014980"
                         )
                     ],
                     [
@@ -1028,7 +1042,11 @@ async def process_sell_amount(message: Message, state: FSMContext):
                             callback_data="confirm_payment",
                             icon_custom_emoji_id="5215538285438311443"
                         ),
-                        InlineKeyboardButton(text="❌ Отмена", callback_data="cancel_deal")
+                        InlineKeyboardButton(
+                            text="Отмена",
+                            callback_data="cancel_deal",
+                            icon_custom_emoji_id="5280803324273115630"
+                        )
                     ],
                     [
                         InlineKeyboardButton(text="❓ Перевёл, но не пришло", url="https://t.me/m/BWVc5SHcOTgy")
@@ -1049,8 +1067,9 @@ async def confirm_sell_payment(callback: CallbackQuery, state: FSMContext):
     """Ждём webhook — он сам создаст сделку"""
 
     await callback.message.answer(
-        "⏳ Ожидаем подтверждение перевода...\n\n"
-        "Как только BC поступят на сервис, сделка будет создана автоматически."
+        f'<tg-emoji emoji-id="5215277915930896212">⏳</tg-emoji> Ожидаем подтверждение перевода...\n\n'
+        "Как только BC поступят на сервис, сделка будет создана автоматически.",
+        parse_mode="HTML"
     )
     await callback.answer("⏳ Ожидайте...")
 
@@ -1076,7 +1095,10 @@ async def cancel_deal(callback: CallbackQuery):
         if deal:
             deal.status = "cancelled"
             await session.commit()
-            await callback.message.edit_text("❌ Сделка отменена")
+            await callback.message.edit_text(
+                f'<tg-emoji emoji-id="5280803324273115630">❌</tg-emoji> Сделка отменена',
+                parse_mode="HTML"
+            )
         else:
             await callback.answer("Нет активных сделок", show_alert=True)
 
@@ -1091,7 +1113,11 @@ async def top_buyers(message: Message):
             ]
         ]
     )
-    await message.answer("🏆 Выберите период:", reply_markup=kb)
+    await message.answer(
+        f'<tg-emoji emoji-id="5409008750893734809">🏆</tg-emoji> Выберите период:',
+        parse_mode="HTML",
+        reply_markup=kb
+    )
 
 
 @router.callback_query(F.data == "top_week")
@@ -1113,15 +1139,24 @@ async def top_week(callback: CallbackQuery):
             await callback.answer("Пока нет покупателей за неделю", show_alert=True)
             return
 
-        text = "🏆 Топ за неделю\n\n"
+        text = f'<tg-emoji emoji-id="5409008750893734809">🏆</tg-emoji> Топ за неделю\n\n'
         for i, user in enumerate(users, 1):
-            medal = "🥇" if i == 1 else "🥈" if i == 2 else "🥉" if i == 3 else f"{i}."
+            if i == 1:
+                medal = '<tg-emoji emoji-id="5280735858926822987">🥇</tg-emoji>'
+            elif i == 2:
+                medal = '<tg-emoji emoji-id="5283195573812340110">🥈</tg-emoji>'
+            elif i == 3:
+                medal = '<tg-emoji emoji-id="5282750778409233531">🥉</tg-emoji>'
+            else:
+                medal = f"{i}."
             name = user.first_name or "Пользователь"
             text += f"{medal} {name}: {format_decimal(user.total_bought_week)} BC\n"
 
         prize = await get_setting("top_prize", "")
         if prize:
-            text += f"\n🎁 Приз: {prize}\n"
+            text += f'\n<tg-emoji emoji-id="5193085063998224234">🎁</tg-emoji> Приз: {prize}\n'
+
+        await callback.message.edit_text(text, parse_mode="HTML")
 
         await callback.message.edit_text(text)
         await callback.answer()
@@ -1145,15 +1180,24 @@ async def top_all(callback: CallbackQuery):
             await callback.answer("Пока нет покупателей", show_alert=True)
             return
 
-        text = "🏆 Топ за всё время\n\n"
+        text = f'<tg-emoji emoji-id="5409008750893734809">🏆</tg-emoji> Топ за всё время\n\n'
         for i, user in enumerate(users, 1):
-            medal = "🏅 " if i == 1 else "🏅 " if i == 2 else "🏅 " if i == 3 else f"{i}."
+            if i == 1:
+                medal = '<tg-emoji emoji-id="5280735858926822987">🥇</tg-emoji>'
+            elif i == 2:
+                medal = '<tg-emoji emoji-id="5283195573812340110">🥈</tg-emoji>'
+            elif i == 3:
+                medal = '<tg-emoji emoji-id="5282750778409233531">🥉</tg-emoji>'
+            else:
+                medal = f"{i}."
             name = user.first_name or "Пользователь"
             text += f"{medal} {name}: {format_decimal(user.total_bought_coins)} BC\n"
 
         prize = await get_setting("top_prize", "")
         if prize:
-            text += f"\n🎁 Приз: {prize}\n"
+            text += f'\n<tg-emoji emoji-id="5193085063998224234">🎁</tg-emoji> Приз: {prize}\n'
+
+        await callback.message.edit_text(text, parse_mode="HTML")
 
         await callback.message.edit_text(text)
         await callback.answer()
@@ -1173,12 +1217,13 @@ async def my_profile(message: Message):
         sold_rub = format_decimal(user.total_sold_rub)
 
         await message.answer(
-            f"👤 Мой профиль\n\n"
-            f"📈 Всего куплено: {bought_coins} BC\n"
-            f"📉 Всего продано: {sold_coins} BC\n"
-            f"💰 Потрачено: {bought_rub}₽\n"
-            f"💸 Получено: {sold_rub}₽\n"
-            f"Дата регистрации: {user.created_at.strftime('%d.%m.%Y')}"
+            f'<tg-emoji emoji-id="5902335789798265487">👤</tg-emoji> Мой профиль\n\n'
+            f'<tg-emoji emoji-id="5429651785352501917">📈</tg-emoji> Всего куплено: {bought_coins} BC\n'
+            f'<tg-emoji emoji-id="5429518319243775957">📉</tg-emoji> Всего продано: {sold_coins} BC\n'
+            f'<tg-emoji emoji-id="5215538285438311443">✅</tg-emoji> Потрачено: {bought_rub}₽\n'
+            f'<tg-emoji emoji-id="5440457429147997980">💸</tg-emoji> Получено: {sold_rub}₽\n'
+            f"Дата регистрации: {user.created_at.strftime('%d.%m.%Y')}",
+            parse_mode="HTML"
         )
 
 
@@ -1218,19 +1263,20 @@ async def get_available_info():
 @router.message(F.text == "ℹ️ О сервисе")
 async def about_cmd(message: Message):
     await message.answer(
-        "ℹ️ Eyelliz Shop\n\n"
+        f'<tg-emoji emoji-id="5334544901428229844">ℹ️</tg-emoji> Eyelliz Shop\n\n'
         "Сервис для покупки и продажи игровой валюты BC.\n\n"
-        "Как купить Bytecoin:\n"
-        "1. Нажмите 'Купить BC 💎 '\n"
-        "2.💰 Введите сумму  \n"
+        f'<tg-emoji emoji-id="5197572355634781614">💎</tg-emoji> Как купить BC:\n'
+        "1. Нажмите 'Купить BC 💎'\n"
+        f'2. <tg-emoji emoji-id="5215538285438311443">✅</tg-emoji> Введите сумму\n'
         "3. Оплатите через СБП\n"
-        "4.💎 Получите Bytecoin\n\n"
-        "Как продать Bytecoin:\n"
-        "1. Нажмите 'Продать BC 💎 '\n"
-        "2. 💎 Введите количество\n"
-        "3. Переведите Bytecoin\n"
-        "4.💰 Получите деньги\n\n"
-        "По вопросам: @EyellizSUP"
+        f'4. <tg-emoji emoji-id="5197572355634781614">💎</tg-emoji> Получите BC\n\n'
+        f'<tg-emoji emoji-id="5197572355634781614">💎</tg-emoji> Как продать BC:\n'
+        "1. Нажмите 'Продать BC 💎'\n"
+        f'2. <tg-emoji emoji-id="5197572355634781614">💎</tg-emoji> Введите количество\n'
+        "3. Переведите BC\n"
+        f'4. <tg-emoji emoji-id="5215538285438311443">✅</tg-emoji> Получите деньги\n\n'
+        "По вопросам: @EyellizSUP",
+        parse_mode="HTML"
     )
 
 
@@ -1288,7 +1334,11 @@ async def process_card_bank(message: Message, state: FSMContext):
                         callback_data="save_payment:card",
                         icon_custom_emoji_id="5215538285438311443"
                     ),
-                    InlineKeyboardButton(text="❌ Нет", callback_data="dont_save_payment")
+                    InlineKeyboardButton(
+                        text="Нет",
+                        callback_data="dont_save_payment",
+                        icon_custom_emoji_id="5280803324273115630"
+                    )
                 ]
             ]
         )
@@ -1310,20 +1360,26 @@ async def save_payment(callback: CallbackQuery, state: FSMContext):
     )
 
     await callback.message.answer(
-        f'<tg-emoji emoji-id="5215538285438311443">💎</tg-emoji> Реквизиты сохранены!\n\n'
+        f'<tg-emoji emoji-id="5215538285438311443">✅</tg-emoji> Реквизиты сохранены!\n\n'
         f"Теперь переведите BC:\n\n"
-        f"🔢 Указать количество — если хотите чтобы мы посчитали сколько будет ваша выплата.\n\n"
-        f"🔗 По ссылке — переведите любую сумму, мы автоматически посчитаем выплату.\n\n"
+        f'<tg-emoji emoji-id="5258334778389710253">🔢</tg-emoji> Указать количество — если хотите чтобы мы посчитали сколько будет ваша выплата.\n\n'
+        f'<tg-emoji emoji-id="5463424023734014980">🔗</tg-emoji> По ссылке — переведите любую сумму, мы автоматически посчитаем выплату.\n\n'
         f"Выберите способ:",
+        parse_mode="HTML",
         reply_markup=InlineKeyboardMarkup(
             inline_keyboard=[
                 [
-                    InlineKeyboardButton(text="🔢 Указать количество", callback_data="sell_specific_amount")
+                    InlineKeyboardButton(
+                        text="Указать количество",
+                        callback_data="sell_specific_amount",
+                        icon_custom_emoji_id="5258334778389710253"
+                    )
                 ],
                 [
                     InlineKeyboardButton(
-                        text="🔗 Перевести по ссылке",
-                        url="https://t.me/byteappbot/app?startapp=transfer-dffc2867ec8c2a106e4e87da"
+                        text="Перевести по ссылке",
+                        url="https://t.me/byteappbot/app?startapp=transfer-dffc2867ec8c2a106e4e87da",
+                        icon_custom_emoji_id="5463424023734014980"
                     )
                 ],
                 [
@@ -1369,8 +1425,9 @@ async def confirm_buy_payment(callback: CallbackQuery, state: FSMContext):
                         icon_custom_emoji_id="5215538285438311443"
                     ),
                     InlineKeyboardButton(
-                        text="❌ Отклонить",
-                        callback_data=f"reject_buy:{deal.id}"
+                        text="Отклонить",
+                        callback_data=f"reject_buy:{deal.id}",
+                        icon_custom_emoji_id="5280803324273115630"
                     )
                 ]
             ]
@@ -1429,19 +1486,25 @@ async def dont_save_payment(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer(
         f"Ок, реквизиты не сохранены.\n\n"
         f"Теперь переведите BC:\n\n"
-        f"🔗 По ссылке — переведите любую сумму, мы автоматически посчитаем выплату.\n"
-        f"🔢 Указать количество — если хотите знать конкретную сумму выплаты.\n\n"
+        f'<tg-emoji emoji-id="5463424023734014980">🔗</tg-emoji> По ссылке — переведите любую сумму, мы автоматически посчитаем выплату.\n'
+        f'<tg-emoji emoji-id="5258334778389710253">🔢</tg-emoji> Указать количество — если хотите знать конкретную сумму выплаты.\n\n'
         f"Выберите способ:",
+        parse_mode="HTML",
         reply_markup=InlineKeyboardMarkup(
             inline_keyboard=[
                 [
                     InlineKeyboardButton(
-                        text="🔗 Перевести по ссылке",
-                        url="https://t.me/byteappbot/app?startapp=transfer-dffc2867ec8c2a106e4e87da"
+                        text="Перевести по ссылке",
+                        url="https://t.me/byteappbot/app?startapp=transfer-dffc2867ec8c2a106e4e87da",
+                        icon_custom_emoji_id="5463424023734014980"
                     )
                 ],
                 [
-                    InlineKeyboardButton(text="🔢 Указать количество", callback_data="sell_specific_amount")
+                    InlineKeyboardButton(
+                        text="Указать количество",
+                        callback_data="sell_specific_amount",
+                        icon_custom_emoji_id="5258334778389710253"
+                    )
                 ],
                 [
                     InlineKeyboardButton(
@@ -1457,21 +1520,23 @@ async def dont_save_payment(callback: CallbackQuery, state: FSMContext):
 
 @router.message(SellStates.waiting_sbp_phone)
 async def process_sbp_phone(message: Message, state: FSMContext):
-
-    # ...
     if await handle_menu_buttons(message, state):
         return
 
     phone = "".join(c for c in message.text if c.isdigit())
 
     if len(phone) < 10:
-        await message.answer("❌ Введите корректный номер телефона")
+        await message.answer(
+            f'<tg-emoji emoji-id="5280803324273115630">❌</tg-emoji> Введите корректный номер телефона',
+            parse_mode="HTML"
+        )
         return
 
     await state.update_data(sbp_phone=phone)
     await message.answer(
-        "🏦 Введите банк для СБП:\n"
-        "Например: Сбербанк, Тинькофф, ВТБ"
+        f'<tg-emoji emoji-id="5264895611517300926">🏦</tg-emoji> Введите банк для СБП:\n'
+        "Например: Сбербанк, Тинькофф, ВТБ",
+        parse_mode="HTML"
     )
     await state.set_state(SellStates.waiting_sbp_bank)
 
@@ -1485,7 +1550,6 @@ async def process_sbp_bank(message: Message, state: FSMContext):
     data = await state.get_data()
     phone = data.get("sbp_phone", "")
 
-    # СОХРАНЯЕМ В БД
     await add_payment_method(
         user_id=message.from_user.id,
         method_type="sbp",
@@ -1501,8 +1565,9 @@ async def process_sbp_bank(message: Message, state: FSMContext):
     await state.update_data(sbp_bank=bank, sbp_phone=phone)
 
     await message.answer(
-        f"📱 СБП: {phone} ({bank})\n\n"
+        f'<tg-emoji emoji-id="5265074015868822600">📱</tg-emoji> СБП: {phone} ({bank})\n\n'
         f"Сохранить эти реквизиты для будущих продаж?",
+        parse_mode="HTML",
         reply_markup=InlineKeyboardMarkup(
             inline_keyboard=[
                 [
@@ -1511,7 +1576,11 @@ async def process_sbp_bank(message: Message, state: FSMContext):
                         callback_data="save_payment:sbp",
                         icon_custom_emoji_id="5215538285438311443"
                     ),
-                    InlineKeyboardButton(text="❌ Нет", callback_data="dont_save_payment")
+                    InlineKeyboardButton(
+                        text="Нет",
+                        callback_data="dont_save_payment",
+                        icon_custom_emoji_id="5280803324273115630"
+                    )
                 ]
             ]
         )
