@@ -10,6 +10,7 @@ from bytecoin_api import bytecoin_api
 from datetime import datetime  # ← Для datetime
 import uuid
 import json
+import html
 from bot_instance import bot  # ← Для bot
 from sqlalchemy import select, func  # ← Для select
 from database import async_session, User, Deal, format_decimal, get_setting, set_setting, PaymentMethod, PendingSell, HiddenUser
@@ -1148,7 +1149,7 @@ async def top_week(callback: CallbackQuery):
                 medal = '<tg-emoji emoji-id="5282750778409233531">🥉</tg-emoji>'
             else:
                 medal = f"{i}."
-            name = user.first_name or "Пользователь"
+            name = html.escape(user.first_name or "Пользователь")
             text += f"{medal} {name}: {format_decimal(user.total_bought_week)} BC\n"
 
         prize = await get_setting("top_prize", "")
@@ -1187,7 +1188,7 @@ async def top_all(callback: CallbackQuery):
                 medal = '<tg-emoji emoji-id="5282750778409233531">🥉</tg-emoji>'
             else:
                 medal = f"{i}."
-            name = user.first_name or "Пользователь"
+            name = html.escape(user.first_name or "Пользователь")
             text += f"{medal} {name}: {format_decimal(user.total_bought_coins)} BC\n"
 
         prize = await get_setting("top_prize", "")
