@@ -28,12 +28,12 @@ class BuyStates(StatesGroup):
     waiting_stars_amount = State()  # ← Для ввода звёзд
 
 MAIN_MENU_BUTTONS = [
-    "Купить BC 💎",
-    "Продать BC 💎",
+    "Купить BC",
+    "Продать BC",
     "📊 Курс и лимиты",
     "🏆 Топ покупателей",  # ← Добавь
-    "👤 Мой профиль",
-    "ℹ️ О сервисе"
+    "📊 Информация",
+    "👤 Профиль"
 ]
 
 
@@ -266,13 +266,13 @@ async def handle_menu_buttons(message: Message, state: FSMContext) -> bool:
     if message.text in MAIN_MENU_BUTTONS:
         await state.clear()
 
-        if message.text == "Купить BC 💎":
+        if message.text == "📈 Купить":
             await buy_bytecoin(message, state)
-        elif message.text == "Продать BC 💎":
+        elif message.text == "📉 Продать":
             await sell_bytecoin(message, state)
-        elif message.text == "📊 Курс и лимиты":
+        elif message.text == "📊 Информация":
             await show_rates_and_limits(message)
-        elif message.text == "👤 Мой профиль":
+        elif message.text == "👤 Профиль":
             await my_profile(message)
         elif message.text == "🏆 Топ покупателей":
             await top_buyers(message)
@@ -560,9 +560,9 @@ async def process_buy_amount(message: Message, state: FSMContext):
         buttons = [
             [
                 InlineKeyboardButton(
-                    text="Я оплатил",
+                    text="СБП",
                     callback_data="continue_buy",
-                    icon_custom_emoji_id="5215538285438311443"
+                    icon_custom_emoji_id="5265074015868822600"
                 )
             ],
         ]

@@ -1,19 +1,20 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
+
+
 def main_menu_kb() -> ReplyKeyboardMarkup:
     return ReplyKeyboardMarkup(
         keyboard=[
             [
-                KeyboardButton(text="Купить BC 💎"),
-                KeyboardButton(text="Продать BC 💎")
+                KeyboardButton(text='<tg-emoji emoji-id="5429651785352501917">📈</tg-emoji> Купить BC'),
+                KeyboardButton(text='<tg-emoji emoji-id="5429518319243775957">📉</tg-emoji> Продать BC')
             ],
             [
-                KeyboardButton(text="📊 Курс и лимиты"),
-                KeyboardButton(text="🏆 Топ покупателей")
+                KeyboardButton(text='<tg-emoji emoji-id="5260742580005530450">📊</tg-emoji> Информация'),
             ],
             [
-                KeyboardButton(text="👤 Мой профиль"),
-                KeyboardButton(text="ℹ️ О сервисе")
+                KeyboardButton(text='<tg-emoji emoji-id="5902335789798265487">👤</tg-emoji> Профиль')
             ]
         ],
         resize_keyboard=True
