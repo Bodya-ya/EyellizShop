@@ -7,7 +7,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from decimal import Decimal, InvalidOperation
 from bytecoin_api import bytecoin_api
-from datetime import datetime  # ← Для datetime
+from datetime import datetime, timedelta
 import uuid
 import json
 import html
@@ -532,8 +532,14 @@ async def top_buyers(message: Message):
             )
             return
 
+        today = datetime.utcnow()
+        start_of_week = today - timedelta(days=today.weekday())
+        end_of_week = start_of_week + timedelta(days=6)
+
+        start_str = start_of_week.strftime("%d.%m")
+        end_str = end_of_week.strftime("%d.%m.%Y")
+
         text = f'<tg-emoji emoji-id="5409008750893734809">🏆</tg-emoji> <b>ТОП ПОКУПАТЕЛЕЙ</b>\n'
-        text += f'<i>за текущую неделю</i>\n\n'
 
         for i, user in enumerate(users, 1):
             if i == 1:
@@ -559,7 +565,7 @@ async def top_buyers(message: Message):
             text += f'<tg-emoji emoji-id="5193085063998224234">🎁</tg-emoji> <b>Приз:</b>\n'
             text += f'<i>{prize}</i>\n\n'
 
-        text += '<i>Обновляется каждую неделю</i>'
+        text += f'<b> ТОП </b><i>с {start_str} по {end_str}</i>\n'
 
         await message.answer(text, parse_mode="HTML")
 
@@ -1205,8 +1211,14 @@ async def top_week(callback: CallbackQuery):
             await callback.answer("Пока нет покупателей за неделю", show_alert=True)
             return
 
+        today = datetime.utcnow()
+        start_of_week = today - timedelta(days=today.weekday())
+        end_of_week = start_of_week + timedelta(days=6)
+
+        start_str = start_of_week.strftime("%d.%m")
+        end_str = end_of_week.strftime("%d.%m.%Y")
+
         text = f'<tg-emoji emoji-id="5409008750893734809">🏆</tg-emoji> <b>ТОП ПОКУПАТЕЛЕЙ</b>\n'
-        text += f'<i>за текущую неделю</i>\n\n'
 
         for i, user in enumerate(users, 1):
             if i == 1:
@@ -1232,7 +1244,7 @@ async def top_week(callback: CallbackQuery):
             text += f'<tg-emoji emoji-id="5193085063998224234">🎁</tg-emoji> <b>Приз:</b>\n'
             text += f'<i>{prize}</i>\n\n'
 
-        text += '<i>Обновляется каждую неделю</i>'
+        text += f'<b> ТОП </b><i>с {start_str} по {end_str}</i>\n'
 
         await callback.message.edit_text(text, parse_mode="HTML")
         await callback.answer()

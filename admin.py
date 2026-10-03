@@ -150,6 +150,16 @@ async def set_rub_balance_start(message: Message, state: FSMContext):
     )
     await state.set_state(AdminStates.waiting_rub_balance)
 
+@router.message(F.text == "❌ Удалить приз")
+async def delete_top_prize(message: Message):
+    if message.from_user.id not in config.ADMIN_IDS:
+        return
+
+    await set_setting("top_prize", "")
+    await message.answer(
+        '<tg-emoji emoji-id="5215538285438311443">✅</tg-emoji> Приз удалён',
+        parse_mode="HTML"
+    )
 
 @router.message(AdminStates.waiting_rub_balance)
 async def set_rub_balance_finish(message: Message, state: FSMContext):
