@@ -320,7 +320,7 @@ async def cmd_start(message: Message, state: FSMContext):
     )
 
 
-@router.message(F.text == "Купить BC 💎")
+@router.message(F.text == "Купить BC")
 async def buy_bytecoin(message: Message, state: FSMContext):
     balance = await get_cached_balance()
     max_sell = Decimal(await get_setting("max_sell_coins", "9999999999"))
@@ -442,7 +442,7 @@ async def quick_buy(callback: CallbackQuery, state: FSMContext):
     await callback.answer()
 
 
-@router.message(F.text == "📊 Курс и лимиты")
+@router.message(F.text == "Курс и лимиты")
 async def show_rates_and_limits(message: Message):
     try:
         balance = await get_cached_balance()
@@ -789,7 +789,7 @@ async def pay_stars_confirm(callback: CallbackQuery, state: FSMContext):
 
     await callback.answer("⭐ Счёт выставлен!")
 
-@router.message(F.text == "Продать BC 💎")
+@router.message(F.text == "Продать BC")
 async def sell_bytecoin(message: Message, state: FSMContext):
     rub_balance = Decimal(await get_setting("rub_balance", "0"))
     max_buy_rub = Decimal(await get_setting("max_buy_rub", "15000"))
@@ -1132,7 +1132,7 @@ async def cancel_deal(callback: CallbackQuery):
             await callback.answer("Нет активных сделок", show_alert=True)
 
 
-@router.message(F.text == "🏆 Топ покупателей")
+@router.message(F.text == "Топ покупателей")
 async def top_buyers(message: Message):
     kb = InlineKeyboardMarkup(
         inline_keyboard=[
@@ -1226,7 +1226,7 @@ async def top_all(callback: CallbackQuery):
         await callback.message.edit_text(text, parse_mode="HTML")
         await callback.answer()
 
-@router.message(F.text == "👤 Мой профиль")
+@router.message(F.text == "Мой профиль")
 async def my_profile(message: Message):
     async with async_session() as session:
         user = await session.get(User, message.from_user.id)
@@ -1284,18 +1284,18 @@ async def get_available_info():
 
     return available_to_sell, available_to_buy
 
-@router.message(F.text == "ℹ️ О сервисе")
+@router.message(F.text == "О сервисе")
 async def about_cmd(message: Message):
     await message.answer(
         f'<tg-emoji emoji-id="5334544901428229844">ℹ️</tg-emoji> Eyelliz Shop\n\n'
         "Сервис для покупки и продажи игровой валюты BC.\n\n"
         f'<tg-emoji emoji-id="5197572355634781614">💎</tg-emoji> Как купить BC:\n'
-        "1. Нажмите 'Купить BC 💎'\n"
+        "1. Нажмите 'Купить BC'\n"
         f'2. <tg-emoji emoji-id="5215538285438311443">✅</tg-emoji> Введите сумму\n'
         "3. Оплатите через СБП\n"
         f'4. <tg-emoji emoji-id="5197572355634781614">💎</tg-emoji> Получите BC\n\n'
         f'<tg-emoji emoji-id="5197572355634781614">💎</tg-emoji> Как продать BC:\n'
-        "1. Нажмите 'Продать BC 💎'\n"
+        "1. Нажмите 'Продать BC'\n"
         f'2. <tg-emoji emoji-id="5197572355634781614">💎</tg-emoji> Введите количество\n'
         "3. Переведите BC\n"
         f'4. <tg-emoji emoji-id="5215538285438311443">✅</tg-emoji> Получите деньги\n\n'
