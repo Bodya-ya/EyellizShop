@@ -1244,7 +1244,7 @@ async def top_week(callback: CallbackQuery):
             text += f'<tg-emoji emoji-id="5193085063998224234">🎁</tg-emoji> <b>Приз:</b>\n'
             text += f'<i>{prize}</i>\n\n'
 
-        text += f'<b> ТОП </b><i>с {start_str} по {end_str}</i>\n'
+        text += f'<tg-emoji emoji-id="5409008750893734809">🏆</tg-emoji> <b>ТОП ПОКУПАТЕЛЕЙ</b>\n<i>с {start_str} по {end_str}</i>\n'
 
         await callback.message.edit_text(text, parse_mode="HTML")
         await callback.answer()
