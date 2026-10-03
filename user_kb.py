@@ -7,14 +7,26 @@ def main_menu_kb() -> ReplyKeyboardMarkup:
     return ReplyKeyboardMarkup(
         keyboard=[
             [
-                KeyboardButton(text='<tg-emoji emoji-id="5429651785352501917">📈</tg-emoji> Купить BC'),
-                KeyboardButton(text='<tg-emoji emoji-id="5429518319243775957">📉</tg-emoji> Продать BC')
+                KeyboardButton(
+                    text="Купить BC",
+                    icon_custom_emoji_id="5429651785352501917" # ID для 📈
+                ),
+                KeyboardButton(
+                    text="Продать BC",
+                    icon_custom_emoji_id="5429518319243775957" # ID для 📉
+                )
             ],
             [
-                KeyboardButton(text='<tg-emoji emoji-id="5260742580005530450">📊</tg-emoji> Информация'),
+                KeyboardButton(
+                    text="Информация",
+                    icon_custom_emoji_id="5260742580005530450" # ID для 📊
+                )
             ],
             [
-                KeyboardButton(text='<tg-emoji emoji-id="5902335789798265487">👤</tg-emoji> Профиль')
+                KeyboardButton(
+                    text="Профиль",
+                    icon_custom_emoji_id="5902335789798265964" # ID для 👤
+                )
             ]
         ],
         resize_keyboard=True
