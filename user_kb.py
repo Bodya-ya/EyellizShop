@@ -9,23 +9,31 @@ def main_menu_kb() -> ReplyKeyboardMarkup:
             [
                 KeyboardButton(
                     text="Купить BC",
-                    icon_custom_emoji_id="5429651785352501917" # ID для 📈
+                    icon_custom_emoji_id="5429651785352501917"  # 📈
                 ),
                 KeyboardButton(
                     text="Продать BC",
-                    icon_custom_emoji_id="5429518319243775957" # ID для 📉
+                    icon_custom_emoji_id="5429518319243775957"  # 📉
                 )
             ],
             [
                 KeyboardButton(
-                    text="Информация",
-                    icon_custom_emoji_id="5260742580005530450" # ID для 📊
+                    text="Курс и лимиты",
+                    icon_custom_emoji_id="5260742580005530450"  # 📊
+                ),
+                KeyboardButton(
+                    text="Топ покупателей",
+                    icon_custom_emoji_id="5409008750893734809"  # 🏆
                 )
             ],
             [
                 KeyboardButton(
-                    text="Профиль",
-                    icon_custom_emoji_id="5902335789798265964" # ID для 👤
+                    text="Мой профиль",
+                    icon_custom_emoji_id="5902335789798265487"  # 👤
+                ),
+                KeyboardButton(
+                    text="О сервисе",
+                    icon_custom_emoji_id="5334544901428229844"  # ℹ️
                 )
             ]
         ],

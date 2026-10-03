@@ -30,9 +30,10 @@ class BuyStates(StatesGroup):
 MAIN_MENU_BUTTONS = [
     "Купить BC",
     "Продать BC",
-    "📊 Курс и лимиты",
-    "🏆 Топ покупателей",  # ← Добавь
-    "👤 Профиль"
+    "Курс и лимиты",
+    "Топ покупателей",  # ← Добавь
+    "Мой Профиль",
+    "О сервисе"
 ]
 
 
@@ -265,20 +266,20 @@ async def handle_menu_buttons(message: Message, state: FSMContext) -> bool:
     if message.text in MAIN_MENU_BUTTONS:
         await state.clear()
 
-        if message.text == "📈 Купить":
+        if message.text == "Купить BC":
             await buy_bytecoin(message, state)
-        elif message.text == "📉 Продать":
+        elif message.text == "Продать BC":
             await sell_bytecoin(message, state)
-        elif message.text == "📊 Информация":
+        elif message.text == "Курс и лимиты":
             await show_rates_and_limits(message)
-        elif message.text == "👤 Профиль":
-            await my_profile(message)
-        elif message.text == "🏆 Топ покупателей":
+        elif message.text == "Топ покупателей":
             await top_buyers(message)
-        elif message.text == "ℹ️ О сервисе":
+        elif message.text == "Мой профиль":
+            await my_profile(message)
+        elif message.text == "О сервисе":
             await about_cmd(message)
         return True
-    return False
+        return False
 
 
 @router.message(Command("start"))
