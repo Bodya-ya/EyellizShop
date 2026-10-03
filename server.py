@@ -172,9 +172,9 @@ async def bytecoin_webhook(request: Request):
                 await session.commit()
 
                 if method.method_type == "card":
-                    payment_info = f"💳 Карта: {method.card_number}\n🏦 Банк: {method.card_bank}"
+                    payment_info = f'<tg-emoji emoji-id="5265074015868822600">📱</tg-emoji> Карта: {method.card_number}\n<tg-emoji emoji-id="5264895611517300926">🏦</tg-emoji> Банк: {method.card_bank}'
                 elif method.method_type == "sbp":
-                    payment_info = f"📱 СБП: {method.sbp_phone}\n🏦 Банк: {method.sbp_bank}"
+                    payment_info = f'<tg-emoji emoji-id="5265074015868822600">📱</tg-emoji> СБП: {method.sbp_phone}\n<tg-emoji emoji-id="5264895611517300926">🏦</tg-emoji> Банк: {method.sbp_bank}'
                 else:
                     payment_info = "Не указано"
 
@@ -235,20 +235,22 @@ async def bytecoin_webhook(request: Request):
                     try:
                         await bot.send_message(
                             admin_id,
-                            f"📥 Пополнение баланса!\n\n"
-                            f"👤 Пользователь: {first_name} {username}\n"
-                            f"💎 BC: {sum_coins:.0f}\n"
-                            f"💰 Эквивалент: {rub_amount:.2f}₽\n\n"
-                            f"Простое пополнение без заявки."
+                            f'<tg-emoji emoji-id="5443127283898405358">📥</tg-emoji> Пополнение баланса!\n\n'
+                            f'<tg-emoji emoji-id="5902335789798265487">👤</tg-emoji> Пользователь: {first_name} {username}\n'
+                            f'<tg-emoji emoji-id="5197572355634781614">💎</tg-emoji> BC: {sum_coins:.0f}\n'
+                            f'<tg-emoji emoji-id="5215538285438311443">✅</tg-emoji> Эквивалент: {rub_amount:.2f}₽\n\n'
+                            f"Простое пополнение без заявки.",
+                            parse_mode="HTML"
                         )
                     except:
                         pass
 
                 await bot.send_message(
                     user_id,
-                    f"✅ Вы пополнили резерв бота на {sum_coins:.0f} BC!\n\n"
+                    f'<tg-emoji emoji-id="5215538285438311443">✅</tg-emoji> Вы пополнили резерв бота на {sum_coins:.0f} BC!\n\n'
                     f"Если это было ошибочно, обратитесь в поддержку бота⬇️\n\n"
-                    f"Support: @EyellizSUP"
+                    f"Support: @EyellizSUP",
+                    parse_mode="HTML"
                 )
 
         return {"status": "ok"}
@@ -276,7 +278,6 @@ async def crypto_webhook(request: Request):
             invoice_payload = payload.get("payload")
             invoice_id = payload.get("invoice_id")
 
-            # Парсим payload: buy_{deal_id}_{user_id}
             parts = invoice_payload.split("_")
             deal_id = int(parts[1])
             user_id = int(parts[2])
@@ -284,7 +285,6 @@ async def crypto_webhook(request: Request):
             logger.info(f"CryptoBot payment: deal_id={deal_id}, user_id={user_id}")
 
             async with async_session() as session:
-                # Находим сделку по deal_id
                 deal = await session.get(Deal, deal_id)
 
                 if not deal:
@@ -295,7 +295,6 @@ async def crypto_webhook(request: Request):
                     logger.info(f"CryptoBot webhook: deal {deal_id} already completed")
                     return {"ok": True}
 
-                # Начисляем BC
                 result = await bytecoin_api.transfer_to_user(
                     user_id=user_id,
                     sum_coins=deal.coins_amount,
@@ -307,7 +306,6 @@ async def crypto_webhook(request: Request):
                     deal.transaction_id = result.get("transaction_id")
                     await session.commit()
 
-                    # Обновляем статистику
                     user = await session.get(User, user_id)
                     if user:
                         user.total_bought_coins = (user.total_bought_coins or 0) + deal.coins_amount
@@ -317,20 +315,22 @@ async def crypto_webhook(request: Request):
 
                     await bot.send_message(
                         user_id,
-                        f"✅ Оплата USDT получена!\n\n"
-                        f"📋 Сделка: {deal.deal_number}\n"
-                        f"💎 Вы получили: {deal.coins_amount:.0f} BC"
+                        f'<tg-emoji emoji-id="5215538285438311443">✅</tg-emoji> Оплата USDT получена!\n\n'
+                        f'<tg-emoji emoji-id="5440457429147997980">📋</tg-emoji> Сделка: {deal.deal_number}\n'
+                        f'<tg-emoji emoji-id="5197572355634781614">💎</tg-emoji> Вы получили: {deal.coins_amount:.0f} BC',
+                        parse_mode="HTML"
                     )
 
                     for admin_id in config.ADMIN_IDS:
                         try:
                             await bot.send_message(
                                 admin_id,
-                                f"💰 Оплата USDT!\n\n"
-                                f"📋 Сделка: {deal.deal_number}\n"
-                                f"👤 User ID: {user_id}\n"
-                                f"💎 BC: {deal.coins_amount:.0f}\n"
-                                f"✅ Завершена автоматически"
+                                f'<tg-emoji emoji-id="5242551409232069476">💲</tg-emoji> Оплата USDT!\n\n'
+                                f'<tg-emoji emoji-id="5440457429147997980">📋</tg-emoji> Сделка: {deal.deal_number}\n'
+                                f'<tg-emoji emoji-id="5902335789798265487">👤</tg-emoji> User ID: {user_id}\n'
+                                f'<tg-emoji emoji-id="5197572355634781614">💎</tg-emoji> BC: {deal.coins_amount:.0f}\n'
+                                f'<tg-emoji emoji-id="5215538285438311443">✅</tg-emoji> Завершена автоматически',
+                                parse_mode="HTML"
                             )
                         except:
                             pass
@@ -342,6 +342,7 @@ async def crypto_webhook(request: Request):
     except Exception as e:
         logger.error(f"CryptoBot webhook error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.get("/health")
 async def health_check():
