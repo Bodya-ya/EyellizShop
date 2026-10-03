@@ -757,6 +757,20 @@ async def back_to_menu(message: Message):
         reply_markup=main_menu_kb()
     )
 
+@router.message(F.text == "💲 Вкл/Выкл USDT")
+async def toggle_usdt(message: Message):
+    if message.from_user.id not in config.ADMIN_IDS:
+        return
+
+    current = await get_setting("usdt_enabled", "1")
+    new_value = "0" if current == "1" else "1"
+    await set_setting("usdt_enabled", new_value)
+
+    status = "включены" if new_value == "1" else "выключены"
+    await message.answer(
+        f'<tg-emoji emoji-id="5215538285438311443">✅</tg-emoji> Оплата USDT {status}',
+        parse_mode="HTML"
+    )
 
 @router.message(F.text == "🎁 Приз топа")
 async def set_top_prize_button(message: Message, state: FSMContext):

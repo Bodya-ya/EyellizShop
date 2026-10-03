@@ -1632,6 +1632,11 @@ async def pay_stars_after_amount(callback: CallbackQuery, state: FSMContext):
 async def pay_with_usdt(callback: CallbackQuery, state: FSMContext):
     import crypto_instance
 
+    usdt_enabled = await get_setting("usdt_enabled", "1")
+    if usdt_enabled != "1":
+        await callback.answer("❌ Оплата USDT отключена", show_alert=True)
+        return
+
     if crypto_instance.crypto is None:
         await callback.answer("⏳ Подождите, бот загружается...", show_alert=True)
         return
