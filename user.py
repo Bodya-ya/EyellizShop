@@ -32,7 +32,7 @@ MAIN_MENU_BUTTONS = [
     "Продать BC",
     "Курс и лимиты",
     "Топ покупателей",  # ← Добавь
-    "Мой Профиль",
+    "Мой профиль",
     "О сервисе"
 ]
 
@@ -258,11 +258,10 @@ async def handle_menu_buttons(message: Message, state: FSMContext) -> bool:
         if message.text == "/start":
             await cmd_start(message, state)
         elif message.text == "/admin":
-            # Импортируем admin_panel
             from admin import admin_panel
             await admin_panel(message, state)
         return True
-    """Проверяет, нажал ли пользователь кнопку меню. Возвращает True, если обработано"""
+
     if message.text in MAIN_MENU_BUTTONS:
         await state.clear()
 
@@ -279,7 +278,7 @@ async def handle_menu_buttons(message: Message, state: FSMContext) -> bool:
         elif message.text == "О сервисе":
             await about_cmd(message)
         return True
-        return False
+    return False
 
 
 @router.message(Command("start"))
