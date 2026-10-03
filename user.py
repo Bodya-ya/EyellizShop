@@ -1476,8 +1476,9 @@ async def confirm_buy_payment(callback: CallbackQuery, state: FSMContext):
     reply_markup=admin_kb
 )
                 notification_messages[admin_id] = msg.message_id
-            except:
-                pass
+            except Exception as e:
+                import logging
+                logging.error(f"Failed to notify admin {admin_id}: {e}")
         await set_setting(f"notify_{deal.id}", json.dumps(notification_messages))
     await callback.message.answer(
         '<tg-emoji emoji-id="5215538285438311443">✅</tg-emoji> Заявка отправлена на проверку!\n\n'
