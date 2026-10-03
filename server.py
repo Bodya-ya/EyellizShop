@@ -130,7 +130,7 @@ async def bytecoin_webhook(request: Request):
                     await bot.send_message(
                         user_id,
                         f'<tg-emoji emoji-id="5280803324273115630">❌</tg-emoji> <b>Минимальная сумма продажи: {config.MIN_SELL_RUB}₽</b>\n\n'
-                        f'<tg-emoji emoji-id="5215538285438311443">✅</tg-emoji> Вы отправили: {format_decimal(rub_amount)}₽\n\n'
+                        f'<tg-emoji emoji-id="[5224257782013769471]">✅</tg-emoji> Вы отправили: {format_decimal(rub_amount)}₽\n\n'
                         f"Обратитесь в поддержку: @EyellizSUP",
                         parse_mode="HTML"
                     )
@@ -141,7 +141,7 @@ async def bytecoin_webhook(request: Request):
                                 f'<tg-emoji emoji-id="5220144015093015075">⚠️</tg-emoji> Пользователь {first_name} {username}\n'
                                 f"Отправил меньше минимума!\n"
                                 f'<tg-emoji emoji-id="5197572355634781614">💎</tg-emoji> BC: {sum_coins:.0f}\n'
-                                f'<tg-emoji emoji-id="5215538285438311443">✅</tg-emoji> Сумма: {rub_amount:.2f}₽\n'
+                                f'<tg-emoji emoji-id="[5224257782013769471]">✅</tg-emoji> Сумма: {rub_amount:.2f}₽\n'
                                 f'<tg-emoji emoji-id="5215538285438311443">✅</tg-emoji> Минимум: {config.MIN_SELL_RUB}₽',
                                 parse_mode="HTML"
                             )
