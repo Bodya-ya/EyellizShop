@@ -1479,15 +1479,13 @@ async def confirm_buy_payment(callback: CallbackQuery, state: FSMContext):
             except:
                 pass
         await set_setting(f"notify_{deal.id}", json.dumps(notification_messages))
-
     await callback.message.answer(
-        "tg-emoji emoji-id={5215538285438311443}>💎</tg-emoji> Заявка отправлена на проверку!\n\n"
-        "⏰ Ожидайте, пока администратор проверит оплату.\n"
+        '<tg-emoji emoji-id="5215538285438311443">✅</tg-emoji> Заявка отправлена на проверку!\n\n'
+        '<tg-emoji emoji-id="5215277915930896212">⏳</tg-emoji> Ожидайте, пока администратор проверит оплату.\n'
         "<i> В среднем от 2-ух до 15-минут.</i>",
         parse_mode="HTML",
     )
-    await callback.answer("tg-emoji emoji-id={5215538285438311443}>💎</tg-emoji> Заявка отправлена!")
-
+    await callback.answer("✅ Заявка отправлена!")
 
 @router.callback_query(F.data == "dont_save_payment")
 async def dont_save_payment(callback: CallbackQuery, state: FSMContext):
