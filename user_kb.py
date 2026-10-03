@@ -79,18 +79,25 @@ def admin_menu_kb() -> ReplyKeyboardMarkup:
 
 
 def saved_payments_kb(methods: list) -> InlineKeyboardMarkup:
-    """Клавиатура с сохранёнными реквизитами"""
     buttons = []
 
     for method in methods:
         if method.method_type == "card":
-            label = f"💳 {method.card_bank or 'Карта'} •••• {method.card_number[-4:] if method.card_number else ''}"
-            callback = f"use_payment:{method.id}"
+            buttons.append([
+                InlineKeyboardButton(
+                    text=f"{method.card_bank or 'Карта'} •••• {method.card_number[-4:] if method.card_number else ''}",
+                    callback_data=f"use_payment:{method.id}",
+                    icon_custom_emoji_id="5217961106554769883"
+                )
+            ])
         elif method.method_type == "sbp":
-            label = f"<tg-emoji emoji-id='{5217961106554769883}'>💎</tg-emoji> {method.sbp_bank or 'СБП'} {method.sbp_phone}"
-            callback = f"use_payment:{method.id}"
-
-        buttons.append([InlineKeyboardButton(text=label, callback_data=callback)])
+            buttons.append([
+                InlineKeyboardButton(
+                    text=f"{method.sbp_bank or 'СБП'} {method.sbp_phone}",
+                    callback_data=f"use_payment:{method.id}",
+                    icon_custom_emoji_id="5217961106554769883"
+                )
+            ])
 
     buttons.append([
         InlineKeyboardButton(text="➕ Добавить новый", callback_data="add_new_payment")
