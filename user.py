@@ -304,12 +304,12 @@ async def cmd_start(message: Message, state: FSMContext):
         return f"{rate * 1000:.2f}".rstrip("0").rstrip(".")
 
     await message.answer(
-        "👋 <b>Добро пожаловать в Eyelliz Shop!</b>\n\n"
-        "Здесь вы можете купить или продать BC 💎\n\n"
-        "💰 <b>Наши курсы:</b>\n"
-        f"📈 <b>Купить:</b> <code>{format_rate(config.RATE_SELL)}₽ / 1000 BC</code>\n"
-        f"📉 <b>Продать:</b> <code>{format_rate(config.RATE_BUY)}₽ / 1000 BC</code>\n\n"
-        "Выберите действие:",
+        f'<tg-emoji emoji-id="5902335789798265487">👤</tg-emoji> <b>Добро пожаловать в Eyelliz Shop!</b>\n\n'
+        f'<tg-emoji emoji-id="5197572355634781614">💎</tg-emoji> Здесь вы можете купить или продать BC\n\n'
+        f'<tg-emoji emoji-id="5215538285438311443">✅</tg-emoji> <b>Наши курсы:</b>\n'
+        f'<tg-emoji emoji-id="5429651785352501917">📈</tg-emoji> <b>Купить:</b> <code>{format_rate(config.RATE_SELL)}₽ / 1000 BC</code>\n'
+        f'<tg-emoji emoji-id="5429518319243775957">📉</tg-emoji> <b>Продать:</b> <code>{format_rate(config.RATE_BUY)}₽ / 1000 BC</code>\n\n'
+        f"Выберите действие:",
         parse_mode="HTML",
         reply_markup=main_menu_kb()
     )
@@ -807,8 +807,8 @@ async def sell_bytecoin(message: Message, state: FSMContext):
         f'<tg-emoji emoji-id="5197572355634781614">💎</tg-emoji> Продажа BC\n\n'
         f'<tg-emoji emoji-id="5429518319243775957">📉</tg-emoji> Курс: <code>1000 BC = {config.RATE_BUY * 1000:.2f}₽</code>\n\n'
         f'<tg-emoji emoji-id="5278467510604160626">📦</tg-emoji> Ваш баланс: {format_num(user_balance)} BC\n\n'
-        f'<tg-emoji emoji-id="5215538285438311443">✅</tg-emoji> Мы можем выкупить до: <code>{format_num(available_coins)}</code> BC\n'
-        f'<tg-emoji emoji-id="5215538285438311443">✅</tg-emoji> Минимум: <code>{config.MIN_SELL_RUB}₽</code> | Максимум: <code>{config.MAX_DEAL_RUB}₽</code>\n\n'
+        f'<tg-emoji emoji-id="5224257782013769471">✅</tg-emoji> Мы можем выкупить до: <code>{format_num(available_coins)}</code> BC\n'
+        f'Минимум: <code>{config.MIN_SELL_RUB}₽</code> | Максимум: <code>{config.MAX_DEAL_RUB}₽</code>\n\n'
         f"Выберите реквизиты для выплаты:",
         parse_mode="HTML",
         reply_markup=saved_payments_kb(methods) if methods else payment_method_sell_kb()
@@ -1123,7 +1123,6 @@ async def top_buyers(message: Message):
 @router.callback_query(F.data == "top_week")
 async def top_week(callback: CallbackQuery):
     async with async_session() as session:
-        # Получаем скрытых
         hidden = await session.execute(select(HiddenUser.user_id))
         hidden_ids = [h for h in hidden.scalars().all()]
 
@@ -1157,8 +1156,6 @@ async def top_week(callback: CallbackQuery):
             text += f'\n<tg-emoji emoji-id="5193085063998224234">🎁</tg-emoji> Приз: {prize}\n'
 
         await callback.message.edit_text(text, parse_mode="HTML")
-
-        await callback.message.edit_text(text)
         await callback.answer()
 
 
@@ -1198,8 +1195,6 @@ async def top_all(callback: CallbackQuery):
             text += f'\n<tg-emoji emoji-id="5193085063998224234">🎁</tg-emoji> Приз: {prize}\n'
 
         await callback.message.edit_text(text, parse_mode="HTML")
-
-        await callback.message.edit_text(text)
         await callback.answer()
 
 @router.message(F.text == "👤 Мой профиль")
