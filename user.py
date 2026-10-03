@@ -252,7 +252,11 @@ async def finish_sell_deal(event, state: FSMContext, payment_method: str):
 
     await state.clear()
 
+
 async def handle_menu_buttons(message: Message, state: FSMContext) -> bool:
+    print(f"DEBUG text = [{message.text}]")
+    print(f"DEBUG in list = {message.text in MAIN_MENU_BUTTONS}")
+
     if message.text.startswith(("/start", "/admin")):
         await state.clear()
         if message.text == "/start":
