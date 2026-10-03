@@ -65,8 +65,9 @@ async def confirm_sell_payment(callback: CallbackQuery, state: FSMContext):
     confirm_spam[user_id] = now
 
     await callback.message.answer(
-        "⏳ Ожидаем подтверждение перевода...\n\n"
-        "Как только BC поступят на сервис, сделка будет создана автоматически."
+        '<tg-emoji emoji-id="5215277915930896212">⏳</tg-emoji> Ожидаем подтверждение перевода...\n\n'
+        "Как только BC поступят на сервис, сделка будет создана автоматически.",
+        parse_mode="HTML"
     )
     await callback.answer("⏳ Ожидайте...")
 

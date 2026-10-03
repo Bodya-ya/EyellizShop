@@ -110,8 +110,9 @@ async def bytecoin_webhook(request: Request):
             rub_amount = sum_coins * rate_buy
 
             user = await session.get(User, user_id)
-            username = f"@{html.escape(user.username)}" if user and user.username else "Нет тега"
             first_name = html.escape(user.first_name) if user and user.first_name else "Пользователь"
+            username = f"@{html.escape(user.username)}" if user and user.username else "Нет тега"
+
             method = await session.scalar(
                 select(PaymentMethod).where(
                     PaymentMethod.user_id == user_id
@@ -210,8 +211,8 @@ async def bytecoin_webhook(request: Request):
                             reply_markup=admin_kb
                         )
                         notification_messages[admin_id] = msg.message_id
-                    except:
-                        pass
+                    except Exception as e:
+                        logger.error(f"Failed to notify admin {admin_id}: {e}")
 
                 await set_setting(f"notify_{deal.id}", json.dumps(notification_messages))
 

@@ -130,7 +130,7 @@ async def admin_history(message: Message):
             text += f"{type_text} | {deal.deal_number}\n"
             text += f'<tg-emoji emoji-id="5902335789798265487">👤</tg-emoji> User: <code>{deal.user_id}</code>\n'
             text += f'<tg-emoji emoji-id="5197572355634781614">💎</tg-emoji> BC: {format_decimal(deal.coins_amount)}\n'
-            text += f'<tg-emoji emoji-id="5215538285438311443">✅</tg-emoji> Сумма: {format_decimal(deal.rub_amount)}₽\n'
+            text += f'<tg-emoji emoji-id="5224257782013769471">✅</tg-emoji> Сумма: {format_decimal(deal.rub_amount)}₽\n'
             text += f"📝 Метод: {deal.payment_method}\n"
             text += f"Статус: {status_text}\n"
             text += "➖➖➖➖➖➖➖➖\n"
@@ -161,7 +161,7 @@ async def set_rub_balance_finish(message: Message, state: FSMContext):
 
         await set_setting("rub_balance", str(amount))
         await message.answer(
-            f'<tg-emoji emoji-id="5215538285438311443">✅</tg-emoji> Баланс рублей обновлён: {amount}₽',
+            f'<tg-emoji emoji-id="5224257782013769471">✅</tg-emoji> Баланс рублей обновлён: {amount}₽',
             parse_mode="HTML"
         )
         await state.clear()
@@ -192,7 +192,7 @@ async def set_max_buy_finish(message: Message, state: FSMContext):
 
         await set_setting("max_buy_rub", str(amount))
         await message.answer(
-            f'<tg-emoji emoji-id="5215538285438311443">✅</tg-emoji> Максимальный выкуп: {amount}₽',
+            f'<tg-emoji emoji-id="5224257782013769471">✅</tg-emoji> Максимальный выкуп: {amount}₽',
             parse_mode="HTML"
         )
         await state.clear()
@@ -452,7 +452,7 @@ async def set_min_limit(message: Message, state: FSMContext):
 
         await state.update_data(min_limit=min_limit)
         await message.answer(
-            '<tg-emoji emoji-id="5215538285438311443">✅</tg-emoji> Теперь введите максимальную сумму сделки (рублей):\n'
+            '<tg-emoji emoji-id="5224257782013769471">✅</tg-emoji> Теперь введите максимальную сумму сделки (рублей):\n'
             "Например: 17500",
             parse_mode="HTML"
         )
@@ -471,7 +471,7 @@ async def set_max_limit(message: Message, state: FSMContext):
 
         await state.update_data(max_limit=max_limit)
         await message.answer(
-            '<tg-emoji emoji-id="5215538285438311443">✅</tg-emoji> Теперь введите минимальную сумму продажи BC (рублей):\n'
+            '<tg-emoji emoji-id="5224257782013769471">✅</tg-emoji> Теперь введите минимальную сумму продажи BC (рублей):\n'
             "Например: 50",
             parse_mode="HTML"
         )
@@ -594,7 +594,7 @@ async def admin_active_deals(message: Message):
             await message.answer(
                 f'<tg-emoji emoji-id="5440457429147997980">📋</tg-emoji> <b>Сделка {deal.deal_number}</b>\n\n'
                 f'<tg-emoji emoji-id="5902335789798265487">👤</tg-emoji> Чел: <code>{first_name} aka. {username}</code>\n'
-                f'<tg-emoji emoji-id="5215538285438311443">✅</tg-emoji> Сумма: {deal.rub_amount}₽\n'
+                f'<tg-emoji emoji-id="5224257782013769471">✅</tg-emoji> Сумма: {deal.rub_amount}₽\n'
                 f'<tg-emoji emoji-id="5197572355634781614">💎</tg-emoji> BC: {deal.coins_amount:.0f}\n'
                 f"📝 Метод: {deal.payment_method}\n"
                 f'<tg-emoji emoji-id="5215277915930896212">⏳</tg-emoji> Создана: {deal.created_at.strftime("%H:%M")}',
